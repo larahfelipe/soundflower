@@ -1,0 +1,11 @@
+{
+  "expo": {
+    "name": "soundflower",
+    "slug": "soundflower",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  },
+  "name": "soundflower"
+}
