@@ -28,7 +28,7 @@ export const TrackInfoWrapper = styled.View`
   align-items: center;
 `;
 
-export const Image = styled.Image`
+export const TrackImage = styled.Image`
   width: 300px;
   height: 300px;
 
