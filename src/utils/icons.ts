@@ -1,4 +1,5 @@
 export const Icons = {
+  search: 'search-outline',
   play: 'ios-play-circle-sharp',
   pause: 'ios-pause-circle-sharp',
   previous: 'ios-play-skip-back-sharp',

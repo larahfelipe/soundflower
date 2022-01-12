@@ -1,6 +1,10 @@
+import { Dispatch, SetStateAction } from 'react';
+
 export type PlayerWrapperProps = {
   trackImgUrl: string;
 };
+
+import { Audio } from 'expo-av';
 
 export type ControlButtonProps = {
   icon: string;
@@ -11,15 +15,32 @@ export type IconProps = {
   size: number;
 };
 
-export type ProgressSliderProps = {
-  currentPosition: number;
-  onPositionChange: (value: number) => void;
-  totalDuration: number;
-  stepInterval: number;
+export type InputFieldProps = {
+  value: string;
+  setValue: Dispatch<SetStateAction<string>>;
+  placeholder: string;
 };
 
-export type YtdlResponse = {
-  formats: Track[];
+export type ProgressSliderProps = {
+  isPlaying: boolean;
+  stepInterval: number;
+  soundPlayerState: Audio.Sound;
+  setIsPlaying: Dispatch<SetStateAction<boolean>>;
+  onPositionChange: (value: number) => void;
+};
+
+type Item = {
+  id: {
+    videoId: string;
+  };
+};
+
+export type YouTubeData = {
+  items: Item[];
+};
+
+export type YtdlData = {
+  formats: TrackData[];
 };
 
 type AudioQuality =
@@ -27,7 +48,7 @@ type AudioQuality =
   | 'AUDIO_QUALITY_MEDIUM'
   | 'AUDIO_QUALITY_HIGH';
 
-export type Track = {
+export type TrackData = {
   approxDurationMs: number;
   audioQuality: AudioQuality;
   quality: string;
@@ -35,6 +56,19 @@ export type Track = {
   hasAudio: boolean;
   hasVideo: boolean;
   url: string;
+};
+
+type Album = {
+  '#text': string;
+  size: string;
+};
+
+export type TrackInfo = {
+  artistName: string;
+  albumTitle: string;
+  albumCover: Album[] | any;
+  albumUrl: string;
+  songTitle: string;
 };
 
 export type PlaybackStatus = {

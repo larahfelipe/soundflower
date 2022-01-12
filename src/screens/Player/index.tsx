@@ -1,46 +1,134 @@
 import React, { useState, useEffect } from 'react';
 
+import { TouchableWithoutFeedback, Keyboard } from 'react-native';
+
+import axios, { AxiosResponse } from 'axios';
 import { Audio } from 'expo-av';
 import ytdl from 'react-native-ytdl';
 
-import { PlayerProgressSlider, PlayerControlButton } from '@/components';
-import { Track, PlaybackStatus, YtdlResponse } from '@/types';
+import {
+  Loading,
+  PlayerInputField,
+  PlayerProgressSlider,
+  PlayerControlButton
+} from '@/components';
+import config from '@/config';
+import {
+  TrackInfo,
+  PlaybackStatus,
+  YouTubeData,
+  YtdlData,
+  TrackData
+} from '@/types';
 import { Icons } from '@/utils';
 
 import * as S from './styles';
 
-const musicUrl = 'https://www.youtube.com/watch?v=d22TMCdq30Y';
+const defaultPlaceholder = 'Enter a song and artist name';
 
-const imageUrl =
-  'https://static.wikia.nocookie.net/arianagrande/images/e/ec/Sweetener_Artwork.jpg/revision/latest?cb=20180619023714';
+const defaultTrackInfo: TrackInfo = {
+  songTitle: '',
+  artistName: '',
+  albumUrl: '',
+  albumTitle: '',
+  albumCover: config.CoverPlaceholderUrl
+};
 
 export function Player() {
+  const [isLoading, setIsLoading] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [player, setPlayer] = useState({} as Audio.Sound);
+  const [inputPlaceholder, setInputPlaceholder] = useState(defaultPlaceholder);
+  const [trackInfo, setTrackInfo] = useState(defaultTrackInfo);
+  const [track, setTrack] = useState('');
+  const [soundPlayer, setSoundPlayer] = useState({} as Audio.Sound);
   const [playbackStatus, setPlaybackStatus] = useState({} as PlaybackStatus);
-  const [track, setTrack] = useState({} as Track);
+
+  const handleSearchTrack = async () => {
+    if (!track) return;
+
+    await getTrack();
+    setInputPlaceholder('Now listening: ' + track);
+    setTrack('');
+  };
 
   const handleTogglePlayback = async () => {
-    if (Object.keys(player).length === 0) {
-      const { sound: newPlayer } = await Audio.Sound.createAsync({
-        uri: track.url
-      });
-      setPlayer(newPlayer);
-      await newPlayer.playAsync();
-    } else {
-      const getPlaybackStatus = await player.getStatusAsync();
-      setPlaybackStatus(getPlaybackStatus as PlaybackStatus);
-      isPlaying ? await player.pauseAsync() : await player.playAsync();
-    }
+    if (Object.keys(soundPlayer).length === 0) return;
+
+    const getPlaybackStatus = await soundPlayer.getStatusAsync();
+    setPlaybackStatus(getPlaybackStatus as PlaybackStatus);
+    isPlaying ? await soundPlayer.pauseAsync() : await soundPlayer.playAsync();
     setIsPlaying(!isPlaying);
   };
 
-  const getTrack = async () => {
-    const { formats }: YtdlResponse = await ytdl.getInfo(musicUrl);
+  const parseTrackFormats = async (trackId: string) => {
+    const { formats }: YtdlData = await ytdl.getInfo(trackId);
+    if (!formats)
+      throw new Error('Could not find any formats for the requested track');
+
     const bestTrackFormats = formats.filter(
       (track) => track.hasAudio && track.audioQuality !== 'AUDIO_QUALITY_LOW'
     );
-    setTrack(bestTrackFormats[0]);
+    return bestTrackFormats;
+  };
+
+  const getTrack = async () => {
+    const [trackTitle, trackArtist] = track
+      .split('-')
+      .map((item) => item.trim());
+    const optionalSearchParams = 'Audio HQ';
+    const fmtSearch = encodeURI(
+      `${trackArtist} - ${trackTitle} ${optionalSearchParams}`
+    );
+
+    try {
+      if (!trackTitle || !trackArtist) return;
+      setIsLoading(true);
+
+      const { data: youtubeData }: AxiosResponse<YouTubeData> = await axios.get(
+        `${config.YouTubeAPIUrl}/search?q=${fmtSearch}&key=${config.YouTubeAPIKey}`
+      );
+      if (!youtubeData) throw new Error('No results was found on youtube');
+      const { id: bestSearchMatch } = youtubeData.items[0];
+      // const bestSearchMatch = { videoId: '' };
+      let trackFormats: TrackData[] | undefined;
+
+      if (Object.keys(soundPlayer).length === 0) {
+        trackFormats = await parseTrackFormats(
+          bestSearchMatch.videoId ||
+            'https://www.youtube.com/watch?v=UMkCkPzbLYI'
+        );
+        if (!trackFormats)
+          throw new Error('Could not format the requested track');
+
+        const soundPlayer = new Audio.Sound();
+        await soundPlayer.loadAsync({
+          uri: trackFormats[0].url
+        });
+        setSoundPlayer(soundPlayer);
+      } else {
+        trackFormats = await parseTrackFormats(
+          bestSearchMatch.videoId ||
+            'https://www.youtube.com/watch?v=UMkCkPzbLYI'
+        );
+        if (!trackFormats)
+          throw new Error('Could not format the requested track');
+
+        setIsPlaying(false);
+        await soundPlayer.unloadAsync();
+        await soundPlayer.loadAsync({
+          uri: trackFormats[0].url
+        });
+      }
+
+      const { data: lastFmData }: AxiosResponse<TrackInfo> = await axios.get(
+        `${config.LastFMProxyUrl}/track?name=${trackTitle}&artist=${trackArtist}`
+      );
+      setTrackInfo(lastFmData);
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -48,38 +136,69 @@ export function Player() {
   }, []);
 
   return (
-    <S.Wrapper>
-      <S.Header>
-        <S.AlbumName>Sweetener</S.AlbumName>
-      </S.Header>
+    <>
+      {isLoading ? (
+        <Loading />
+      ) : (
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <S.Wrapper>
+            <S.AppNameWrapper>
+              <S.AppName>soundflower</S.AppName>
+            </S.AppNameWrapper>
 
-      <S.TrackInfoWrapper>
-        <S.TrackImage
-          source={{
-            uri: imageUrl
-          }}
-        />
-        <S.TrackName>no tears left to cry</S.TrackName>
-        <S.ArtistName>Ariana Grande</S.ArtistName>
-      </S.TrackInfoWrapper>
+            <S.InputWrapper>
+              <PlayerInputField
+                value={track}
+                setValue={setTrack}
+                placeholder={inputPlaceholder}
+              />
+              <S.SearchButton onPress={handleSearchTrack}>
+                <S.Icon name={Icons.search} />
+              </S.SearchButton>
+            </S.InputWrapper>
 
-      <PlayerProgressSlider
-        currentPosition={playbackStatus.positionMillis}
-        onPositionChange={async (value) => await player.setPositionAsync(value)}
-        totalDuration={playbackStatus.durationMillis}
-        stepInterval={playbackStatus.progressUpdateIntervalMillis}
-      />
+            <S.TrackWrapper>
+              <S.Header>
+                <S.AlbumTitle>{trackInfo.albumTitle}</S.AlbumTitle>
+              </S.Header>
 
-      <S.PlayerControlsWrapper>
-        <PlayerControlButton icon={Icons.shuffle} onPress={() => ''} />
-        <PlayerControlButton icon={Icons.previous} onPress={() => ''} />
-        <PlayerControlButton
-          icon={isPlaying ? Icons.pause : Icons.play}
-          onPress={handleTogglePlayback}
-        />
-        <PlayerControlButton icon={Icons.next} onPress={() => ''} />
-        <PlayerControlButton icon={Icons.repeat} onPress={() => ''} />
-      </S.PlayerControlsWrapper>
-    </S.Wrapper>
+              <S.TrackInfoWrapper>
+                <S.TrackImage
+                  source={{
+                    uri:
+                      trackInfo.albumCover[3]['#text'] ||
+                      trackInfo.albumCover[2]['#text'] ||
+                      trackInfo.albumCover
+                  }}
+                />
+                <S.TrackTitle>{trackInfo.songTitle}</S.TrackTitle>
+                <S.ArtistName>{trackInfo.artistName}</S.ArtistName>
+              </S.TrackInfoWrapper>
+
+              <PlayerProgressSlider
+                isPlaying={isPlaying}
+                setIsPlaying={setIsPlaying}
+                stepInterval={playbackStatus.progressUpdateIntervalMillis}
+                soundPlayerState={soundPlayer}
+                onPositionChange={async (value) =>
+                  await soundPlayer.setPositionAsync(value)
+                }
+              />
+
+              <S.PlayerControlsWrapper>
+                <PlayerControlButton icon={Icons.shuffle} onPress={() => ''} />
+                <PlayerControlButton icon={Icons.previous} onPress={() => ''} />
+                <PlayerControlButton
+                  icon={isPlaying ? Icons.pause : Icons.play}
+                  onPress={handleTogglePlayback}
+                />
+                <PlayerControlButton icon={Icons.next} onPress={() => ''} />
+                <PlayerControlButton icon={Icons.repeat} onPress={() => ''} />
+              </S.PlayerControlsWrapper>
+            </S.TrackWrapper>
+          </S.Wrapper>
+        </TouchableWithoutFeedback>
+      )}
+    </>
   );
 }
