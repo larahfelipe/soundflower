@@ -2,7 +2,8 @@ export default {
   colors: {
     title: '#fafafa',
     titleDark: '#ccc',
-    background: '#000'
+    background: '#000',
+    shape: '#fff'
   },
   fonts: {
     regular: 'Rubik_400Regular',

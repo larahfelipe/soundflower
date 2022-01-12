@@ -11,7 +11,8 @@ module.exports = function (api) {
             '@': './src'
           }
         }
-      ]
+      ],
+      'inline-dotenv'
     ]
   };
 };
