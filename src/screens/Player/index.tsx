@@ -60,7 +60,7 @@ export function Player() {
     setIsPlaying(!isPlaying);
   };
 
-  const parseTrack = async (trackId: string) => {
+  const parseTrackFormats = async (trackId: string) => {
     const { formats }: YtdlData = await ytdl.getInfo(trackId);
     if (!formats)
       throw new Error('Could not find any formats for the requested track');
@@ -90,33 +90,33 @@ export function Player() {
       if (!youtubeData) throw new Error('No results was found on youtube');
       const { id: bestSearchMatch } = youtubeData.items[0];
       // const bestSearchMatch = { videoId: '' };
-      let parsedTrack: TrackData[] | undefined;
+      let trackFormats: TrackData[] | undefined;
 
       if (Object.keys(soundPlayer).length === 0) {
-        parsedTrack = await parseTrack(
+        trackFormats = await parseTrackFormats(
           bestSearchMatch.videoId ||
             'https://www.youtube.com/watch?v=UMkCkPzbLYI'
         );
-        if (!parsedTrack)
+        if (!trackFormats)
           throw new Error('Could not format the requested track');
 
         const soundPlayer = new Audio.Sound();
         await soundPlayer.loadAsync({
-          uri: parsedTrack[0].url
+          uri: trackFormats[0].url
         });
         setSoundPlayer(soundPlayer);
       } else {
-        parsedTrack = await parseTrack(
+        trackFormats = await parseTrackFormats(
           bestSearchMatch.videoId ||
             'https://www.youtube.com/watch?v=UMkCkPzbLYI'
         );
-        if (!parsedTrack)
+        if (!trackFormats)
           throw new Error('Could not format the requested track');
 
         setIsPlaying(false);
         await soundPlayer.unloadAsync();
         await soundPlayer.loadAsync({
-          uri: parsedTrack[0].url
+          uri: trackFormats[0].url
         });
       }
 
