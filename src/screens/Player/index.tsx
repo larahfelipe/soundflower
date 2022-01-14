@@ -142,6 +142,10 @@ export function Player() {
       ) : (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <S.Wrapper>
+            <S.AppNameWrapper>
+              <S.AppName>soundflower</S.AppName>
+            </S.AppNameWrapper>
+
             <S.InputWrapper>
               <PlayerInputField
                 value={track}

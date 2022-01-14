@@ -11,6 +11,7 @@ export function Loading() {
 
   return (
     <S.Wrapper>
+      <S.AppName>soundflower</S.AppName>
       <ActivityIndicator size="large" color={colors.shape} />
     </S.Wrapper>
   );

@@ -8,6 +8,22 @@ export const Wrapper = styled.View`
   background-color: ${({ theme }) => theme.colors.background};
 `;
 
+export const AppNameWrapper = styled.View`
+  width: 100%;
+
+  align-items: flex-start;
+
+  margin-top: 48px;
+  margin-left: 20px;
+`;
+
+export const AppName = styled.Text`
+  font-size: ${RFValue(15)}px;
+  font-family: ${({ theme }) => theme.fonts.medium};
+
+  color: ${({ theme }) => theme.colors.shape};
+`;
+
 export const InputWrapper = styled.View`
   width: 100%;
 
@@ -15,7 +31,7 @@ export const InputWrapper = styled.View`
   justify-content: space-between;
   align-items: center;
 
-  margin-top: 62px;
+  margin-top: 20px;
 `;
 
 export const SearchButton = styled.TouchableOpacity`
