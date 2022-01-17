@@ -3,27 +3,25 @@ import React, { useState, useCallback, useEffect } from 'react';
 import Slider from '@react-native-community/slider';
 import { useTheme } from 'styled-components';
 
-import { ProgressSliderProps, PlaybackStatus } from '@/types';
+import { usePlayback } from '@/hooks';
+import { PlaybackStatus } from '@/types';
 import { formatTime } from '@/utils';
 
 import * as S from './styles';
 
-export function PlayerProgressSlider({
-  isPlaying,
-  setIsPlaying,
-  stepInterval,
-  soundPlayerState,
-  onPositionChange
-}: ProgressSliderProps) {
+export function PlayerProgressSlider() {
   const [currentPosition, setCurrentPosition] = useState(0);
   const [totalDuration, setTotalDuration] = useState(0);
+
+  const { isPlaying, setIsPlaying, playbackStatus, soundPlayer } =
+    usePlayback();
 
   const { colors } = useTheme();
 
   const getCurrentPosition = useCallback(async () => {
-    if (Object.keys(soundPlayerState).length !== 0) {
+    if (Object.keys(soundPlayer).length) {
       const { positionMillis, durationMillis } =
-        (await soundPlayerState.getStatusAsync()) as PlaybackStatus;
+        (await soundPlayer.getStatusAsync()) as PlaybackStatus;
 
       if (isPlaying) {
         if (positionMillis === durationMillis) {
@@ -35,22 +33,24 @@ export function PlayerProgressSlider({
         }
       }
     }
-  }, [soundPlayerState, isPlaying]);
+  }, [soundPlayer, isPlaying]);
 
   useEffect(() => {
     const updatePositionInterval = setInterval(
       getCurrentPosition,
-      stepInterval
+      playbackStatus.progressUpdateIntervalMillis
     );
     return () => clearInterval(updatePositionInterval);
-  }, [getCurrentPosition, stepInterval]);
+  }, [getCurrentPosition, playbackStatus.progressUpdateIntervalMillis]);
 
   return (
     <S.Wrapper>
       <Slider
         value={currentPosition}
-        onValueChange={onPositionChange}
-        step={stepInterval}
+        onValueChange={async (value) =>
+          await soundPlayer.setPositionAsync(value)
+        }
+        step={playbackStatus.progressUpdateIntervalMillis}
         minimumValue={0}
         maximumValue={totalDuration}
         style={{ width: '90%' }}

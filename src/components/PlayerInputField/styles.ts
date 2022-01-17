@@ -13,5 +13,5 @@ export const InputField = styled.TextInput`
   border-radius: 10px;
 
   color: ${({ theme }) => theme.colors.title};
-  background-color: #27252e;
+  background-color: ${({ theme }) => theme.colors.backgroundLight};
 `;

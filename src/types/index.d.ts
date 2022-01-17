@@ -1,10 +1,21 @@
-import { Dispatch, SetStateAction } from 'react';
-
-export type PlayerWrapperProps = {
-  trackImgUrl: string;
-};
+import { Dispatch, SetStateAction, ReactNode } from 'react';
 
 import { Audio } from 'expo-av';
+
+export type PlaybackContextProps = {
+  isLoading: boolean;
+  isPlaying: boolean;
+  setIsPlaying: Dispatch<SetStateAction<boolean>>;
+  playbackStatus: PlaybackStatus;
+  setPlaybackStatus: Dispatch<SetStateAction<PlaybackStatus>>;
+  soundPlayer: Audio.Sound;
+  getTrack: (track: string) => Promise<void>;
+  track: TrackData;
+};
+
+export type PlaybackProviderProps = {
+  children: ReactNode;
+};
 
 export type ControlButtonProps = {
   icon: string;
@@ -21,34 +32,12 @@ export type InputFieldProps = {
   placeholder: string;
 };
 
-export type ProgressSliderProps = {
-  isPlaying: boolean;
-  stepInterval: number;
-  soundPlayerState: Audio.Sound;
-  setIsPlaying: Dispatch<SetStateAction<boolean>>;
-  onPositionChange: (value: number) => void;
-};
-
-type Item = {
-  id: {
-    videoId: string;
-  };
-};
-
-export type YouTubeData = {
-  items: Item[];
-};
-
-export type YtdlData = {
-  formats: TrackData[];
-};
-
 type AudioQuality =
   | 'AUDIO_QUALITY_LOW'
   | 'AUDIO_QUALITY_MEDIUM'
   | 'AUDIO_QUALITY_HIGH';
 
-export type TrackData = {
+type TrackFormatsData = {
   approxDurationMs: number;
   audioQuality: AudioQuality;
   quality: string;
@@ -58,17 +47,8 @@ export type TrackData = {
   url: string;
 };
 
-type Album = {
-  '#text': string;
-  size: string;
-};
-
-export type TrackInfo = {
-  artistName: string;
-  albumTitle: string;
-  albumCover: Album[] | any;
-  albumUrl: string;
-  songTitle: string;
+export type YtdlData = {
+  formats: TrackFormatsData[];
 };
 
 export type PlaybackStatus = {
@@ -90,4 +70,25 @@ export type PlaybackStatus = {
   isMuted: boolean;
   isLooping: boolean;
   didJustFinish: boolean;
+};
+
+type Palette = {
+  Vibrant?: string;
+  Muted?: string;
+  DarkVibrant?: string;
+  DarkMuted?: string;
+  LightVibrant?: string;
+  LightMuted?: string;
+  Fallback: string;
+};
+
+export type TrackData = {
+  artistName: string;
+  albumTitle: string;
+  albumUrl: string;
+  albumCoverUrl: string;
+  coverColors: Palette;
+  videoId: string;
+  title: string;
+  streamUrl?: string;
 };
