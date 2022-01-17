@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 
 import { TouchableWithoutFeedback, Keyboard } from 'react-native';
 
-import axios, { AxiosResponse } from 'axios';
+import { AxiosResponse } from 'axios';
 import { Audio } from 'expo-av';
 import ytdl from 'react-native-ytdl';
+import { DefaultTheme, ThemeProvider, useTheme } from 'styled-components';
 
 import {
   Loading,
@@ -13,43 +14,46 @@ import {
   PlayerControlButton
 } from '@/components';
 import config from '@/config';
-import {
-  TrackInfo,
-  PlaybackStatus,
-  YouTubeData,
-  YtdlData,
-  TrackData
-} from '@/types';
+import { api } from '@/services';
+import { TrackInfo, YtdlData, PlaybackStatus } from '@/types';
 import { Icons } from '@/utils';
 
 import * as S from './styles';
 
-const defaultPlaceholder = 'Enter a song and artist name';
-
 const defaultTrackInfo: TrackInfo = {
-  songTitle: '',
+  title: '',
   artistName: '',
-  albumUrl: '',
+  streamUrl: '',
   albumTitle: '',
-  albumCover: config.CoverPlaceholderUrl
+  albumUrl: '',
+  coverColors: {
+    Fallback: '#000'
+  },
+  videoId: '',
+  albumCoverUrl: config.CoverPlaceholderUrl
 };
 
 export function Player() {
   const [isLoading, setIsLoading] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [inputPlaceholder, setInputPlaceholder] = useState(defaultPlaceholder);
   const [trackInfo, setTrackInfo] = useState(defaultTrackInfo);
   const [track, setTrack] = useState('');
   const [soundPlayer, setSoundPlayer] = useState({} as Audio.Sound);
   const [playbackStatus, setPlaybackStatus] = useState({} as PlaybackStatus);
 
-  const handleSearchTrack = async () => {
-    if (!track) return;
+  const defaultTheme = useTheme();
 
-    await getTrack();
-    setInputPlaceholder('Now listening: ' + track);
-    setTrack('');
-  };
+  const theme: DefaultTheme = useMemo(
+    () => ({
+      ...defaultTheme,
+      colors: {
+        ...defaultTheme.colors,
+        background:
+          trackInfo.coverColors.DarkVibrant || defaultTheme.colors.background
+      }
+    }),
+    [trackInfo.coverColors]
+  );
 
   const handleTogglePlayback = async () => {
     if (Object.keys(soundPlayer).length === 0) return;
@@ -60,59 +64,50 @@ export function Player() {
     setIsPlaying(!isPlaying);
   };
 
+  const handleSearchTrack = async () => {
+    if (!track) return;
+
+    await getTrack();
+    setTrack('');
+  };
+
   const parseTrackFormats = async (trackId: string) => {
     const { formats }: YtdlData = await ytdl.getInfo(trackId);
     if (!formats)
       throw new Error('Could not find any formats for the requested track');
 
-    const bestTrackFormats = formats.filter(
+    let bestTrackFormatsAvailable = formats.filter(
       (track) => track.hasAudio && track.audioQuality !== 'AUDIO_QUALITY_LOW'
     );
-    return bestTrackFormats;
+    if (!bestTrackFormatsAvailable.length)
+      bestTrackFormatsAvailable = formats.filter((track) => track.hasAudio);
+
+    return bestTrackFormatsAvailable;
   };
 
   const getTrack = async () => {
     const [trackTitle, trackArtist] = track
       .split('-')
       .map((item) => item.trim());
-    const optionalSearchParams = 'Audio HQ';
-    const fmtSearch = encodeURI(
-      `${trackArtist} - ${trackTitle} ${optionalSearchParams}`
-    );
 
     try {
       if (!trackTitle || !trackArtist) return;
       setIsLoading(true);
 
-      const { data: youtubeData }: AxiosResponse<YouTubeData> = await axios.get(
-        `${config.YouTubeAPIUrl}/search?q=${fmtSearch}&key=${config.YouTubeAPIKey}`
+      const { data }: AxiosResponse<TrackInfo> = await api.get(
+        `track?title=${trackTitle}&artist=${trackArtist}`
       );
-      if (!youtubeData) throw new Error('No results was found on youtube');
-      const { id: bestSearchMatch } = youtubeData.items[0];
-      // const bestSearchMatch = { videoId: '' };
-      let trackFormats: TrackData[] | undefined;
+      if (!data) throw new Error('No data was returned.');
 
-      if (Object.keys(soundPlayer).length === 0) {
-        trackFormats = await parseTrackFormats(
-          bestSearchMatch.videoId ||
-            'https://www.youtube.com/watch?v=UMkCkPzbLYI'
-        );
-        if (!trackFormats)
-          throw new Error('Could not format the requested track');
+      const trackFormats = await parseTrackFormats(data.videoId);
 
+      if (!Object.keys(soundPlayer).length) {
         const soundPlayer = new Audio.Sound();
         await soundPlayer.loadAsync({
           uri: trackFormats[0].url
         });
         setSoundPlayer(soundPlayer);
       } else {
-        trackFormats = await parseTrackFormats(
-          bestSearchMatch.videoId ||
-            'https://www.youtube.com/watch?v=UMkCkPzbLYI'
-        );
-        if (!trackFormats)
-          throw new Error('Could not format the requested track');
-
         setIsPlaying(false);
         await soundPlayer.unloadAsync();
         await soundPlayer.loadAsync({
@@ -120,10 +115,7 @@ export function Player() {
         });
       }
 
-      const { data: lastFmData }: AxiosResponse<TrackInfo> = await axios.get(
-        `${config.LastFMProxyUrl}/track?name=${trackTitle}&artist=${trackArtist}`
-      );
-      setTrackInfo(lastFmData);
+      setTrackInfo({ ...trackInfo, ...data });
     } catch (err) {
       console.log(err);
     } finally {
@@ -140,64 +132,69 @@ export function Player() {
       {isLoading ? (
         <Loading />
       ) : (
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <S.Wrapper>
-            <S.AppNameWrapper>
-              <S.AppName>soundflower</S.AppName>
-            </S.AppNameWrapper>
+        <ThemeProvider theme={theme}>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <S.Wrapper mainColors={trackInfo.coverColors}>
+              <S.AppNameWrapper>
+                <S.AppName>soundflower</S.AppName>
+              </S.AppNameWrapper>
 
-            <S.InputWrapper>
-              <PlayerInputField
-                value={track}
-                setValue={setTrack}
-                placeholder={inputPlaceholder}
-              />
-              <S.SearchButton onPress={handleSearchTrack}>
-                <S.Icon name={Icons.search} />
-              </S.SearchButton>
-            </S.InputWrapper>
-
-            <S.TrackWrapper>
-              <S.Header>
-                <S.AlbumTitle>{trackInfo.albumTitle}</S.AlbumTitle>
-              </S.Header>
-
-              <S.TrackInfoWrapper>
-                <S.TrackImage
-                  source={{
-                    uri:
-                      trackInfo.albumCover[3]['#text'] ||
-                      trackInfo.albumCover[2]['#text'] ||
-                      trackInfo.albumCover
-                  }}
+              <S.InputWrapper>
+                <PlayerInputField
+                  value={track}
+                  setValue={setTrack}
+                  placeholder="Enter a song and artist name"
                 />
-                <S.TrackTitle>{trackInfo.songTitle}</S.TrackTitle>
-                <S.ArtistName>{trackInfo.artistName}</S.ArtistName>
-              </S.TrackInfoWrapper>
+                <S.SearchButton onPress={handleSearchTrack}>
+                  <S.Icon name={Icons.search} />
+                </S.SearchButton>
+              </S.InputWrapper>
 
-              <PlayerProgressSlider
-                isPlaying={isPlaying}
-                setIsPlaying={setIsPlaying}
-                stepInterval={playbackStatus.progressUpdateIntervalMillis}
-                soundPlayerState={soundPlayer}
-                onPositionChange={async (value) =>
-                  await soundPlayer.setPositionAsync(value)
-                }
-              />
+              <S.TrackWrapper>
+                <S.Header>
+                  <S.AlbumTitle>{trackInfo.albumTitle}</S.AlbumTitle>
+                </S.Header>
 
-              <S.PlayerControlsWrapper>
-                <PlayerControlButton icon={Icons.shuffle} onPress={() => ''} />
-                <PlayerControlButton icon={Icons.previous} onPress={() => ''} />
-                <PlayerControlButton
-                  icon={isPlaying ? Icons.pause : Icons.play}
-                  onPress={handleTogglePlayback}
+                <S.TrackInfoWrapper>
+                  <S.TrackImage
+                    source={{
+                      uri: trackInfo.albumCoverUrl
+                    }}
+                  />
+                  <S.TrackTitle>{trackInfo.title}</S.TrackTitle>
+                  <S.ArtistName>{trackInfo.artistName}</S.ArtistName>
+                </S.TrackInfoWrapper>
+
+                <PlayerProgressSlider
+                  isPlaying={isPlaying}
+                  setIsPlaying={setIsPlaying}
+                  stepInterval={playbackStatus.progressUpdateIntervalMillis}
+                  soundPlayerState={soundPlayer}
+                  onPositionChange={async (value) =>
+                    await soundPlayer.setPositionAsync(value)
+                  }
                 />
-                <PlayerControlButton icon={Icons.next} onPress={() => ''} />
-                <PlayerControlButton icon={Icons.repeat} onPress={() => ''} />
-              </S.PlayerControlsWrapper>
-            </S.TrackWrapper>
-          </S.Wrapper>
-        </TouchableWithoutFeedback>
+
+                <S.PlayerControlsWrapper>
+                  <PlayerControlButton
+                    icon={Icons.shuffle}
+                    onPress={() => ''}
+                  />
+                  <PlayerControlButton
+                    icon={Icons.previous}
+                    onPress={() => ''}
+                  />
+                  <PlayerControlButton
+                    icon={isPlaying ? Icons.pause : Icons.play}
+                    onPress={handleTogglePlayback}
+                  />
+                  <PlayerControlButton icon={Icons.next} onPress={() => ''} />
+                  <PlayerControlButton icon={Icons.repeat} onPress={() => ''} />
+                </S.PlayerControlsWrapper>
+              </S.TrackWrapper>
+            </S.Wrapper>
+          </TouchableWithoutFeedback>
+        </ThemeProvider>
       )}
     </>
   );

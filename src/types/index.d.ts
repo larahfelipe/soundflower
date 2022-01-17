@@ -1,10 +1,10 @@
 import { Dispatch, SetStateAction } from 'react';
 
+import { Audio } from 'expo-av';
+
 export type PlayerWrapperProps = {
   trackImgUrl: string;
 };
-
-import { Audio } from 'expo-av';
 
 export type ControlButtonProps = {
   icon: string;
@@ -29,16 +29,6 @@ export type ProgressSliderProps = {
   onPositionChange: (value: number) => void;
 };
 
-type Item = {
-  id: {
-    videoId: string;
-  };
-};
-
-export type YouTubeData = {
-  items: Item[];
-};
-
 export type YtdlData = {
   formats: TrackData[];
 };
@@ -56,19 +46,6 @@ export type TrackData = {
   hasAudio: boolean;
   hasVideo: boolean;
   url: string;
-};
-
-type Album = {
-  '#text': string;
-  size: string;
-};
-
-export type TrackInfo = {
-  artistName: string;
-  albumTitle: string;
-  albumCover: Album[] | any;
-  albumUrl: string;
-  songTitle: string;
 };
 
 export type PlaybackStatus = {
@@ -90,4 +67,25 @@ export type PlaybackStatus = {
   isMuted: boolean;
   isLooping: boolean;
   didJustFinish: boolean;
+};
+
+type Palette = {
+  Vibrant?: string;
+  Muted?: string;
+  DarkVibrant?: string;
+  DarkMuted?: string;
+  LightVibrant?: string;
+  LightMuted?: string;
+  Fallback: string;
+};
+
+export type TrackInfo = {
+  artistName: string;
+  albumTitle: string;
+  albumUrl: string;
+  albumCoverUrl: string;
+  coverColors: Palette;
+  videoId: string;
+  title: string;
+  streamUrl?: string;
 };

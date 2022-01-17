@@ -21,7 +21,7 @@ export function PlayerProgressSlider({
   const { colors } = useTheme();
 
   const getCurrentPosition = useCallback(async () => {
-    if (Object.keys(soundPlayerState).length !== 0) {
+    if (Object.keys(soundPlayerState).length) {
       const { positionMillis, durationMillis } =
         (await soundPlayerState.getStatusAsync()) as PlaybackStatus;
 
