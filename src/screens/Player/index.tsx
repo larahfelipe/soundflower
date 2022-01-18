@@ -2,9 +2,6 @@ import React, { useState, useMemo, useEffect } from 'react';
 
 import { TouchableWithoutFeedback, Keyboard } from 'react-native';
 
-import { AxiosResponse } from 'axios';
-import { Audio } from 'expo-av';
-import ytdl from 'react-native-ytdl';
 import { DefaultTheme, ThemeProvider, useTheme } from 'styled-components';
 
 import {
@@ -13,46 +10,37 @@ import {
   PlayerProgressSlider,
   PlayerControlButton
 } from '@/components';
-import config from '@/config';
-import { api } from '@/services';
-import { TrackInfo, YtdlData, PlaybackStatus } from '@/types';
+import { usePlayback } from '@/hooks';
+import { PlaybackStatus } from '@/types';
 import { Icons } from '@/utils';
 
 import * as S from './styles';
 
-const defaultTrackInfo: TrackInfo = {
-  title: '',
-  artistName: '',
-  streamUrl: '',
-  albumTitle: '',
-  albumUrl: '',
-  coverColors: {
-    Fallback: '#000'
-  },
-  videoId: '',
-  albumCoverUrl: config.CoverPlaceholderUrl
-};
-
 export function Player() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [trackInfo, setTrackInfo] = useState(defaultTrackInfo);
-  const [track, setTrack] = useState('');
-  const [soundPlayer, setSoundPlayer] = useState({} as Audio.Sound);
-  const [playbackStatus, setPlaybackStatus] = useState({} as PlaybackStatus);
+  const [enteredTrack, setEnteredTrack] = useState('');
 
-  const defaultTheme = useTheme();
+  const {
+    isLoading,
+    isPlaying,
+    setIsPlaying,
+    setPlaybackStatus,
+    soundPlayer,
+    getTrack,
+    track
+  } = usePlayback();
+
+  const { fonts, colors } = useTheme();
 
   const theme: DefaultTheme = useMemo(
     () => ({
-      ...defaultTheme,
+      fonts: { ...fonts },
       colors: {
-        ...defaultTheme.colors,
-        background:
-          trackInfo.coverColors.DarkVibrant || defaultTheme.colors.background
+        ...colors,
+        background: track.coverColors.DarkMuted || colors.background,
+        backgroundLight: track.coverColors.Muted || colors.backgroundLight
       }
     }),
-    [trackInfo.coverColors]
+    [track.coverColors]
   );
 
   const handleTogglePlayback = async () => {
@@ -65,66 +53,14 @@ export function Player() {
   };
 
   const handleSearchTrack = async () => {
-    if (!track) return;
+    if (!enteredTrack) return;
 
-    await getTrack();
-    setTrack('');
-  };
-
-  const parseTrackFormats = async (trackId: string) => {
-    const { formats }: YtdlData = await ytdl.getInfo(trackId);
-    if (!formats)
-      throw new Error('Could not find any formats for the requested track');
-
-    let bestTrackFormatsAvailable = formats.filter(
-      (track) => track.hasAudio && track.audioQuality !== 'AUDIO_QUALITY_LOW'
-    );
-    if (!bestTrackFormatsAvailable.length)
-      bestTrackFormatsAvailable = formats.filter((track) => track.hasAudio);
-
-    return bestTrackFormatsAvailable;
-  };
-
-  const getTrack = async () => {
-    const [trackTitle, trackArtist] = track
-      .split('-')
-      .map((item) => item.trim());
-
-    try {
-      if (!trackTitle || !trackArtist) return;
-      setIsLoading(true);
-
-      const { data }: AxiosResponse<TrackInfo> = await api.get(
-        `track?title=${trackTitle}&artist=${trackArtist}`
-      );
-      if (!data) throw new Error('No data was returned.');
-
-      const trackFormats = await parseTrackFormats(data.videoId);
-
-      if (!Object.keys(soundPlayer).length) {
-        const soundPlayer = new Audio.Sound();
-        await soundPlayer.loadAsync({
-          uri: trackFormats[0].url
-        });
-        setSoundPlayer(soundPlayer);
-      } else {
-        setIsPlaying(false);
-        await soundPlayer.unloadAsync();
-        await soundPlayer.loadAsync({
-          uri: trackFormats[0].url
-        });
-      }
-
-      setTrackInfo({ ...trackInfo, ...data });
-    } catch (err) {
-      console.log(err);
-    } finally {
-      setIsLoading(false);
-    }
+    await getTrack(enteredTrack);
+    setEnteredTrack('');
   };
 
   useEffect(() => {
-    getTrack();
+    getTrack(enteredTrack);
   }, []);
 
   return (
@@ -134,15 +70,15 @@ export function Player() {
       ) : (
         <ThemeProvider theme={theme}>
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <S.Wrapper mainColors={trackInfo.coverColors}>
+            <S.Wrapper>
               <S.AppNameWrapper>
                 <S.AppName>soundflower</S.AppName>
               </S.AppNameWrapper>
 
               <S.InputWrapper>
                 <PlayerInputField
-                  value={track}
-                  setValue={setTrack}
+                  value={enteredTrack}
+                  setValue={setEnteredTrack}
                   placeholder="Enter a song and artist name"
                 />
                 <S.SearchButton onPress={handleSearchTrack}>
@@ -152,28 +88,20 @@ export function Player() {
 
               <S.TrackWrapper>
                 <S.Header>
-                  <S.AlbumTitle>{trackInfo.albumTitle}</S.AlbumTitle>
+                  <S.AlbumTitle>{track.albumTitle}</S.AlbumTitle>
                 </S.Header>
 
                 <S.TrackInfoWrapper>
                   <S.TrackImage
                     source={{
-                      uri: trackInfo.albumCoverUrl
+                      uri: track.albumCoverUrl
                     }}
                   />
-                  <S.TrackTitle>{trackInfo.title}</S.TrackTitle>
-                  <S.ArtistName>{trackInfo.artistName}</S.ArtistName>
+                  <S.TrackTitle>{track.title}</S.TrackTitle>
+                  <S.ArtistName>{track.artistName}</S.ArtistName>
                 </S.TrackInfoWrapper>
 
-                <PlayerProgressSlider
-                  isPlaying={isPlaying}
-                  setIsPlaying={setIsPlaying}
-                  stepInterval={playbackStatus.progressUpdateIntervalMillis}
-                  soundPlayerState={soundPlayer}
-                  onPositionChange={async (value) =>
-                    await soundPlayer.setPositionAsync(value)
-                  }
-                />
+                <PlayerProgressSlider />
 
                 <S.PlayerControlsWrapper>
                   <PlayerControlButton

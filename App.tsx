@@ -13,6 +13,7 @@ import { StatusBar } from 'expo-status-bar';
 import { ThemeProvider } from 'styled-components';
 
 import theme from '@/global/styles/theme';
+import { PlaybackProvider } from '@/hooks';
 import { Player } from '@/screens';
 
 LogBox.ignoreLogs([
@@ -31,7 +32,9 @@ export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <StatusBar style="light" />
-      <Player />
+      <PlaybackProvider>
+        <Player />
+      </PlaybackProvider>
     </ThemeProvider>
   );
 }

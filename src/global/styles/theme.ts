@@ -3,6 +3,7 @@ export default {
     title: '#fafafa',
     titleDark: '#ccc',
     background: '#000',
+    backgroundLight: '#222',
     shape: '#fff'
   },
   fonts: {

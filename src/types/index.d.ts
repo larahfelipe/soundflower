@@ -1,9 +1,20 @@
-import { Dispatch, SetStateAction } from 'react';
+import { Dispatch, SetStateAction, ReactNode } from 'react';
 
 import { Audio } from 'expo-av';
 
-export type PlayerWrapperProps = {
-  trackImgUrl: string;
+export type PlaybackContextProps = {
+  isLoading: boolean;
+  isPlaying: boolean;
+  setIsPlaying: Dispatch<SetStateAction<boolean>>;
+  playbackStatus: PlaybackStatus;
+  setPlaybackStatus: Dispatch<SetStateAction<PlaybackStatus>>;
+  soundPlayer: Audio.Sound;
+  getTrack: (track: string) => Promise<void>;
+  track: TrackData;
+};
+
+export type PlaybackProviderProps = {
+  children: ReactNode;
 };
 
 export type ControlButtonProps = {
@@ -21,24 +32,12 @@ export type InputFieldProps = {
   placeholder: string;
 };
 
-export type ProgressSliderProps = {
-  isPlaying: boolean;
-  stepInterval: number;
-  soundPlayerState: Audio.Sound;
-  setIsPlaying: Dispatch<SetStateAction<boolean>>;
-  onPositionChange: (value: number) => void;
-};
-
-export type YtdlData = {
-  formats: TrackData[];
-};
-
 type AudioQuality =
   | 'AUDIO_QUALITY_LOW'
   | 'AUDIO_QUALITY_MEDIUM'
   | 'AUDIO_QUALITY_HIGH';
 
-export type TrackData = {
+type TrackFormatsData = {
   approxDurationMs: number;
   audioQuality: AudioQuality;
   quality: string;
@@ -46,6 +45,10 @@ export type TrackData = {
   hasAudio: boolean;
   hasVideo: boolean;
   url: string;
+};
+
+export type YtdlData = {
+  formats: TrackFormatsData[];
 };
 
 export type PlaybackStatus = {
@@ -79,7 +82,7 @@ type Palette = {
   Fallback: string;
 };
 
-export type TrackInfo = {
+export type TrackData = {
   artistName: string;
   albumTitle: string;
   albumUrl: string;

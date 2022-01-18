@@ -2,13 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { RFValue } from 'react-native-responsive-fontsize';
 import styled from 'styled-components/native';
 
-import { TrackInfo } from '@/types';
-
-type WrapperProps = {
-  mainColors: TrackInfo['coverColors'];
-};
-
-export const Wrapper = styled.View<WrapperProps>`
+export const Wrapper = styled.View`
   flex: 1;
 
   background-color: ${({ theme }) => theme.colors.background};
