@@ -47,7 +47,7 @@ function PlaybackProvider({ children }: PlaybackProviderProps) {
       setIsLoading(true);
 
       const { data }: AxiosResponse<TrackData> = await api.get(
-        `track?title=${trackTitle}&artist=${trackArtist}`
+        `track?title=${trackTitle}&artist=${trackArtist}&modules=getTrackInfo`
       );
       if (!data) throw new Error('No data was returned.');
 

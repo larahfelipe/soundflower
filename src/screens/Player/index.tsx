@@ -55,6 +55,7 @@ export function Player() {
   const handleSearchTrack = async () => {
     if (!enteredTrack) return;
 
+    isPlaying && (await soundPlayer.pauseAsync());
     await getTrack(enteredTrack);
     setEnteredTrack('');
   };
