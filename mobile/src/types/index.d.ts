@@ -52,13 +52,13 @@ export type SoundPlayerContextProps = {
 export type SoundPlayerProviderProps = ComponentProps;
 
 export type Track = {
-  artistName: string;
+  title: string;
+  artist: string;
   albumTitle: string;
   albumUrl: string;
-  albumCoverUrl: string;
-  coverColors: Palette;
-  videoId: string;
-  title: string;
+  artworkUrl: string;
+  artworkColors: Palette;
+  ytVideoId: string;
 };
 
 type YtdlTrackFormatsData = {
