@@ -14,5 +14,5 @@ export const DEFAULT_TRACK_RESPONSE: TrackResponse = {
     LightVibrant: '',
     LightMuted: ''
   },
-  videoId: ''
+  ytVideoId: ''
 };
