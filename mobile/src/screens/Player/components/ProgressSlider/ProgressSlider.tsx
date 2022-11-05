@@ -65,7 +65,7 @@ export const ProgressSlider = () => {
     <S.Wrapper>
       <Slider
         value={currentValue}
-        onValueChange={handleValueChange}
+        onSlidingComplete={handleValueChange}
         maximumValue={totalValue}
         minimumTrackTintColor={colors.titleDark}
         maximumTrackTintColor={colors.shapeDark}

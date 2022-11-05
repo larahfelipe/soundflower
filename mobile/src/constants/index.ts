@@ -18,14 +18,13 @@ export const ICONS = {
 
 export const DEFAULT_TRACK_DATA: Track = {
   title: '',
-  artistName: '',
-  streamUrl: '',
+  artist: '',
   albumTitle: '',
   albumUrl: '',
-  coverColors: {
+  ytVideoId: '',
+  artworkColors: {
     Fallback: '#000'
   },
-  videoId: '',
-  albumCoverUrl:
-    'https://github.com/larafe1/soundflower/blob/master/src/assets/placeholder.png?raw=true'
+  artworkUrl:
+    'https://github.com/larafe1/soundflower/blob/master/mobile/src/assets/placeholder.png?raw=true'
 };

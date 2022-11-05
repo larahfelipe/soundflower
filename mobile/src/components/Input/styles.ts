@@ -1,5 +1,5 @@
 import { RFValue } from 'react-native-responsive-fontsize';
-import styled from 'styled-components/native';
+import styled, { css } from 'styled-components/native';
 
 import type { InputProps } from './types';
 
@@ -11,6 +11,11 @@ export const Input = styled.TextInput<InputProps>`
   width: 100%;
 
   padding: ${RFValue(11)}px ${RFValue(16)}px;
+  ${({ rightContent }) =>
+    !!rightContent &&
+    css`
+      padding-right: ${RFValue(64)}px;
+    `}
 
   position: relative;
 

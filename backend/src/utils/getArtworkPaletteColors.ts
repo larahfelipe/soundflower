@@ -26,7 +26,7 @@ export const getArtworkPaletteColors = async (artworkUrl: string) => {
   if (!artworkUrl || !validateURL(artworkUrl)) return;
 
   const paletteColors = await Vibrant.from(artworkUrl).getPalette();
-  if (!paletteColors) return {};
+  if (!paletteColors) return {} as any;
 
   Object.keys(paletteColors).forEach((key) => {
     if (!paletteColors[key]) return;

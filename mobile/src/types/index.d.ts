@@ -30,6 +30,7 @@ export type TrackContextProps = {
   track: Track;
   getTrack: (trackMetadata: string) => Promise<Track>;
   getTrackFormats: (trackId: string) => Promise<TrackFormats>;
+  unloadTrack: () => void;
 };
 
 export type TrackProviderProps = ComponentProps;

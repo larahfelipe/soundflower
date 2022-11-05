@@ -1,3 +1,3 @@
 export default {
-  apiBaseUrl: 'https://larafe1-austrack.vercel.app/api'
+  apiBaseUrl: 'https://larafe1-soundflower.vercel.app/api'
 } as const;

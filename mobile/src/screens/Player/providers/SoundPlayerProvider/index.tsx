@@ -18,7 +18,7 @@ export const SoundPlayerProvider = ({ children }: SoundPlayerProviderProps) => {
   const [audioPlayer, setAudioPlayer] = useState({} as Audio.Sound);
 
   const { setError } = useApp();
-  const { getTrack, getTrackFormats } = useTrack();
+  const { getTrack, getTrackFormats, unloadTrack } = useTrack();
 
   const getSoundPlayerStatus = useCallback(async () => {
     let status = {} as PlaybackStatus;
@@ -70,37 +70,45 @@ export const SoundPlayerProvider = ({ children }: SoundPlayerProviderProps) => {
     [audioPlayer, setError, setIsAudioLoaded]
   );
 
-  const preparePlayback = useCallback(async (enteredTrack: string) => {
-    if (!enteredTrack) {
-      setError('Please enter a track and artist name');
-      return;
-    }
-
-    try {
-      setError('');
-
-      const track = await getTrack(enteredTrack);
-
-      const trackFormats = await getTrackFormats(track.videoId);
-      const trackStreamUrls = [
-        ...trackFormats.bestQuality.map((f) => f.url),
-        ...trackFormats.worstQuality.map((f) => f.url)
-      ];
-      if (!trackStreamUrls.length) return;
-
-      for (const streamUrl of trackStreamUrls) {
-        const isLoaded = await setSoundPlayer(streamUrl);
-        if (isLoaded) break;
-        if (
-          !isLoaded &&
-          trackStreamUrls.indexOf(streamUrl) === trackStreamUrls.length - 1
-        )
-          setError('Could not load the track');
+  const preparePlayback = useCallback(
+    async (enteredTrack: string) => {
+      if (!enteredTrack) {
+        setError('Please enter a track and artist name');
+        return;
       }
-    } catch (e) {
-      console.error(e);
-    }
-  }, []);
+
+      try {
+        setError('');
+
+        const track = await getTrack(enteredTrack);
+
+        const trackFormats = await getTrackFormats(track.ytVideoId);
+        const trackStreamUrls = [
+          ...trackFormats.bestQuality.map((f) => f.url),
+          ...trackFormats.worstQuality.map((f) => f.url)
+        ];
+        if (!trackStreamUrls.length) {
+          await audioPlayer.unloadAsync();
+          return;
+        }
+
+        for (const streamUrl of trackStreamUrls) {
+          const isLoaded = await setSoundPlayer(streamUrl);
+          if (isLoaded) break;
+          if (
+            !isLoaded &&
+            trackStreamUrls.indexOf(streamUrl) === trackStreamUrls.length - 1
+          ) {
+            setError('Could not load the track');
+            unloadTrack();
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    },
+    [audioPlayer]
+  );
 
   const togglePlayback = useCallback(async () => {
     if (audioPlayer instanceof Audio.Sound) {
