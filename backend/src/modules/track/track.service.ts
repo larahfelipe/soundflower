@@ -7,6 +7,7 @@ import {
   getArtworkPaletteColors,
   getHQArtworkUrl,
   getYouTubeVideoId,
+  parseQueryPayload,
   parseTrackMetadata,
   validateYouTubeUrl
 } from '@/utils';
@@ -39,7 +40,7 @@ export class TrackService {
   }
 
   async execute({ q }: TrackService.Params) {
-    const trackResponse: TrackService.Result = DEFAULT_TRACK_RESPONSE;
+    let trackResponse: TrackService.Result = DEFAULT_TRACK_RESPONSE;
     let videoMetadata = {} as VideoMetadata;
     const isValidYouTubeUrl = validateYouTubeUrl(q);
 
@@ -57,14 +58,18 @@ export class TrackService {
         videoMetadata = videos[0];
       }
 
-      Object.assign(trackResponse, {
+      trackResponse = {
+        ...trackResponse,
         title: videoMetadata.title,
         artworkUrl: videoMetadata.thumbnail,
         ytVideoId: videoMetadata.videoId
-      });
+      };
 
-      const trackMetadata = parseTrackMetadata(q);
-      if (trackMetadata?.artist) {
+      const parsedQueryPayloadPossibilities = parseQueryPayload(q);
+      for (const v of parsedQueryPayloadPossibilities) {
+        const trackMetadata = parseTrackMetadata(v);
+        if (!trackMetadata?.artist) break;
+
         const { artist, title } = trackMetadata;
 
         const trackByMetadata_1 = await this.getTrackByMetadata({
@@ -73,13 +78,16 @@ export class TrackService {
         });
 
         if (trackByMetadata_1?.track?.album) {
-          Object.assign(trackResponse, {
+          trackResponse = {
+            ...trackResponse,
             albumTitle: trackByMetadata_1.track.album.title,
             albumUrl: trackByMetadata_1.track.album.url,
             title: trackByMetadata_1.track.name,
             artist: trackByMetadata_1.track.album.artist,
             artworkUrl: getHQArtworkUrl(trackByMetadata_1.track.album.image)
-          });
+          };
+
+          break;
         } else {
           const trackByTitle = await this.getTrackByTitle({ title });
 
@@ -102,22 +110,26 @@ export class TrackService {
                 ? getHQArtworkUrl(trackByMetadata_2.track.album.image)
                 : getHQArtworkUrl(targetTrack.image);
 
-            Object.assign(trackResponse, {
+            trackResponse = {
+              ...trackResponse,
               albumTitle: trackByMetadata_2.track.album.title,
               albumUrl: trackByMetadata_2.track.album.url,
               title: name,
               artist,
               artworkUrl
-            });
+            };
+
+            break;
           }
         }
       }
 
-      Object.assign(trackResponse, {
+      trackResponse = {
+        ...trackResponse,
         artworkColors:
           (await getArtworkPaletteColors(trackResponse.artworkUrl)) ??
           trackResponse.artworkColors
-      });
+      };
 
       return trackResponse;
     } catch (e) {

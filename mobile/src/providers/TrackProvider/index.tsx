@@ -28,12 +28,14 @@ export const TrackProvider = ({ children }: TrackProviderProps) => {
 
     if (!trackId) {
       setError('Track ID was not received from the server');
+      unloadTrack();
       return formatsAvailable;
     }
 
     const { formats }: YtdlData = await ytdl.getInfo(trackId);
     if (!formats.length) {
       setError('No compatible formats were found for this track');
+      unloadTrack();
       return formatsAvailable;
     }
 
@@ -54,7 +56,9 @@ export const TrackProvider = ({ children }: TrackProviderProps) => {
       if (!Object.keys(data).length)
         setError('Could not find any track for the given search');
 
-      const trackData = data.albumTitle ? data : { ...track, ...data };
+      const trackData = data.albumTitle
+        ? data
+        : { ...DEFAULT_TRACK_DATA, ...data };
 
       setTrack(trackData);
       return trackData;
@@ -62,8 +66,12 @@ export const TrackProvider = ({ children }: TrackProviderProps) => {
     [track]
   );
 
+  const unloadTrack = useCallback(() => setTrack(DEFAULT_TRACK_DATA), []);
+
   return (
-    <TrackContext.Provider value={{ track, getTrack, getTrackFormats }}>
+    <TrackContext.Provider
+      value={{ track, getTrack, getTrackFormats, unloadTrack }}
+    >
       {children}
     </TrackContext.Provider>
   );

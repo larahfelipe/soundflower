@@ -15,7 +15,7 @@ export const ApiProvider = ({ children }: ApiProviderProps) => {
       setIsLoading(true);
 
       const { data }: AxiosResponse<Track> = await api.get(
-        `https://jsonurl.com/QyU3`
+        `/v1/track?q=${payload}`
       );
 
       return data ?? {};

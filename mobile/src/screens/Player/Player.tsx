@@ -32,6 +32,7 @@ const PlayerComponent = () => {
           <Input
             placeholder="Search track"
             onChangeText={setEnteredTrack}
+            onSubmitEditing={handlePreparePlayback}
             rightContent={<InputBtn onPress={handlePreparePlayback} />}
           />
 
@@ -43,7 +44,7 @@ const PlayerComponent = () => {
           h="95%"
           colors={[
             colors.background,
-            track.coverColors.DarkVibrant ?? colors.background,
+            track.artworkColors.DarkVibrant ?? colors.background,
             'transparent'
           ]}
         >

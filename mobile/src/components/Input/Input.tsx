@@ -10,7 +10,11 @@ export const Input = ({ rightContent, ...props }: InputProps) => {
 
   return (
     <S.Wrapper>
-      <S.Input placeholderTextColor={colors.titleDark} {...props} />
+      <S.Input
+        placeholderTextColor={colors.titleDark}
+        rightContent={rightContent}
+        {...props}
+      />
 
       {!!rightContent && (
         <S.RightContentWrapper>{rightContent}</S.RightContentWrapper>
