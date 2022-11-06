@@ -21,10 +21,10 @@ export const DEFAULT_TRACK_DATA: Track = {
   artist: '',
   albumTitle: '',
   albumUrl: '',
-  ytVideoId: '',
   artworkColors: {
     Fallback: '#000'
   },
   artworkUrl:
-    'https://github.com/larafe1/soundflower/blob/master/mobile/src/assets/placeholder.png?raw=true'
+    'https://github.com/larafe1/soundflower/blob/master/mobile/src/assets/placeholder.png?raw=true',
+  ytVideoId: ''
 };

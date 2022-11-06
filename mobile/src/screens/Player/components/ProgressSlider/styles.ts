@@ -6,11 +6,11 @@ export const Wrapper = styled.View`
   height: ${RFValue(50)}px;
 
   align-items: center;
-  justify-content: space-between;
+  justify-content: space-evenly;
 `;
 
 export const TimestampsWrapper = styled.View`
-  width: 90%;
+  width: 95%;
   height: ${RFValue(20)}px;
 
   flex-direction: row;
@@ -18,7 +18,7 @@ export const TimestampsWrapper = styled.View`
 `;
 
 export const Time = styled.Text`
-  font-size: ${RFValue(12)}px;
+  font-size: ${RFValue(11.5)}px;
   font-family: ${({ theme }) => theme.fonts.regular};
 
   color: ${({ theme }) => theme.colors.titleDark};

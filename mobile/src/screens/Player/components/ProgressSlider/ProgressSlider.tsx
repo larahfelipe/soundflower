@@ -19,7 +19,7 @@ export const ProgressSlider = () => {
     getSoundPlayerStatus,
     getPlaybackPosition,
     setPlaybackPosition,
-    togglePlayback,
+    onPlaybackFinish,
     isPlaying
   } = useSoundPlayer();
 
@@ -42,14 +42,15 @@ export const ProgressSlider = () => {
   const updateCurrentPosition = useCallback(async () => {
     const { positionMillis } = await getPlaybackPosition();
     if (positionMillis >= totalValue) {
-      setCurrentValue(0);
-      await togglePlayback();
-      await setPlaybackPosition(0);
+      console.log(
+        'bug here, this scope is being entered only when the track is entire played and not when the user drags the slider'
+      );
+      await onPlaybackFinish();
       return;
     }
 
     setCurrentValue(positionMillis);
-  }, [getPlaybackPosition, totalValue, togglePlayback]);
+  }, [getPlaybackPosition, onPlaybackFinish, totalValue]);
 
   useEffect(() => void onMount(), [onMount]);
 
