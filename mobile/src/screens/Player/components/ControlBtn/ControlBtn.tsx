@@ -6,7 +6,7 @@ import * as S from './styles';
 import type { ControlBtnProps } from './types';
 
 export const ControlBtn = ({ icon, ...props }: ControlBtnProps) => {
-  const iconSize = icon === ICONS.PLAY || icon === ICONS.PAUSE ? 72 : 24;
+  const iconSize = icon === ICONS.PLAY || icon === ICONS.PAUSE ? 70 : 22;
 
   return (
     <S.ControlBtn {...props}>

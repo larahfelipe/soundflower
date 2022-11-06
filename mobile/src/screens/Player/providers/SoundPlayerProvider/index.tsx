@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useState } from 'react';
+import React, { createContext, useCallback, useRef, useState } from 'react';
 
 import { Audio } from 'expo-av';
 
@@ -15,10 +15,19 @@ export const SoundPlayerContext = createContext({} as SoundPlayerContextProps);
 export const SoundPlayerProvider = ({ children }: SoundPlayerProviderProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isAudioLoaded, setIsAudioLoaded] = useState(false);
+  const [isRepeatEnabled, setIsRepeatEnabled] = useState(false);
   const [audioPlayer, setAudioPlayer] = useState({} as Audio.Sound);
+  const queue = useRef([] as string[]);
+  const queuePointer = useRef(0);
+  const _isPlaying = useRef(false);
 
   const { setError } = useApp();
   const { getTrack, getTrackFormats, unloadTrack } = useTrack();
+
+  const getPointedTrackQueued = useCallback(
+    () => queue.current[queuePointer.current],
+    []
+  );
 
   const getSoundPlayerStatus = useCallback(async () => {
     let status = {} as PlaybackStatus;
@@ -28,6 +37,37 @@ export const SoundPlayerProvider = ({ children }: SoundPlayerProviderProps) => {
 
     return status;
   }, [audioPlayer]);
+
+  const getPlaybackPosition = useCallback(async () => {
+    let playbackPosition: PlaybackPosition = {
+      positionMillis: 0,
+      durationMillis: 0
+    };
+
+    if (audioPlayer instanceof Audio.Sound) {
+      const { positionMillis, durationMillis } = await getSoundPlayerStatus();
+
+      playbackPosition = {
+        positionMillis,
+        durationMillis
+      };
+    }
+
+    return playbackPosition;
+  }, [audioPlayer, getSoundPlayerStatus]);
+
+  const setPlaybackPosition = useCallback(
+    async (positionMillis: number) => {
+      if (audioPlayer instanceof Audio.Sound) {
+        try {
+          await audioPlayer.setPositionAsync(positionMillis);
+        } catch (_) {
+          // ignore
+        }
+      }
+    },
+    [audioPlayer]
+  );
 
   const setSoundPlayer = useCallback(
     async (trackStreamUrl: string) => {
@@ -46,10 +86,13 @@ export const SoundPlayerProvider = ({ children }: SoundPlayerProviderProps) => {
 
         if (audioPlayer instanceof Audio.Sound) {
           await audioPlayer.unloadAsync();
-          const { isLoaded } = await audioPlayer.loadAsync({
-            uri: trackStreamUrl
-          });
+
+          const { isLoaded } = await audioPlayer.loadAsync(
+            { uri: trackStreamUrl },
+            { shouldPlay: _isPlaying.current }
+          );
           setIsAudioLoaded(isLoaded);
+
           return isLoaded;
         }
 
@@ -70,17 +113,35 @@ export const SoundPlayerProvider = ({ children }: SoundPlayerProviderProps) => {
     [audioPlayer, setError, setIsAudioLoaded]
   );
 
-  const preparePlayback = useCallback(
-    async (enteredTrack: string) => {
-      if (!enteredTrack) {
-        setError('Please enter a track and artist name');
-        return;
-      }
+  const togglePlayback = useCallback(async () => {
+    if (audioPlayer instanceof Audio.Sound) {
+      const playbackStatus = await getSoundPlayerStatus();
+      if (!playbackStatus.isLoaded) return;
+
+      isPlaying
+        ? await audioPlayer.pauseAsync()
+        : await audioPlayer.playAsync();
+
+      setIsPlaying(!isPlaying);
+      _isPlaying.current = !isPlaying;
+    }
+  }, [audioPlayer, getSoundPlayerStatus, isPlaying]);
+
+  const processQueue = useCallback(
+    async (shouldContinue = true) => {
+      if (_isPlaying.current && !shouldContinue) return;
 
       try {
         setError('');
 
-        const track = await getTrack(enteredTrack);
+        const trackQueued = getPointedTrackQueued();
+        if (!trackQueued) {
+          await togglePlayback();
+          await setPlaybackPosition(0);
+          return;
+        }
+
+        const track = await getTrack(trackQueued);
 
         const trackFormats = await getTrackFormats(track.ytVideoId);
         const trackStreamUrls = [
@@ -107,52 +168,65 @@ export const SoundPlayerProvider = ({ children }: SoundPlayerProviderProps) => {
         console.error(e);
       }
     },
-    [audioPlayer]
+    [
+      audioPlayer,
+      togglePlayback,
+      getPointedTrackQueued,
+      getTrack,
+      getTrackFormats,
+      setError,
+      setSoundPlayer,
+      unloadTrack
+    ]
   );
 
-  const togglePlayback = useCallback(async () => {
-    if (audioPlayer instanceof Audio.Sound) {
-      const playbackStatus = await audioPlayer.getStatusAsync();
-      if (!playbackStatus.isLoaded) return;
-
-      isPlaying
-        ? await audioPlayer.pauseAsync()
-        : await audioPlayer.playAsync();
-
-      setIsPlaying(!isPlaying);
-    }
-  }, [audioPlayer, isPlaying]);
-
-  const getPlaybackPosition = useCallback(async () => {
-    let playbackPosition: PlaybackPosition = {
-      positionMillis: 0,
-      durationMillis: 0
-    };
-
-    if (audioPlayer instanceof Audio.Sound) {
-      const { positionMillis, durationMillis } =
-        (await audioPlayer.getStatusAsync()) as PlaybackStatus;
-
-      playbackPosition = {
-        positionMillis,
-        durationMillis
-      };
+  const onPlaybackFinish = useCallback(async () => {
+    if (isRepeatEnabled) {
+      await setPlaybackPosition(0);
+      setIsRepeatEnabled(false);
+      return;
     }
 
-    return playbackPosition;
-  }, [audioPlayer]);
+    queuePointer.current++;
+    await processQueue();
+  }, [isRepeatEnabled, processQueue, setPlaybackPosition]);
 
-  const setPlaybackPosition = useCallback(
-    async (positionMillis: number) => {
-      if (audioPlayer instanceof Audio.Sound) {
-        try {
-          await audioPlayer.setPositionAsync(positionMillis);
-        } catch (_) {
-          // ignore
-        }
+  const enqueue = useCallback(
+    async (enteredValue: string) => {
+      if (!enteredValue) {
+        setError('Please enter a track and artist name');
+        return;
       }
+
+      queue.current.push(enteredValue);
+      await processQueue(false);
     },
-    [audioPlayer]
+    [setError, processQueue]
+  );
+
+  const shuffleQueue = useCallback(() => {
+    if (!queue.current.length || queue.current.length === 1) return;
+
+    queue.current.sort(() => Math.random() - 0.5);
+  }, []);
+
+  const previousTrack = useCallback(async () => {
+    if (queuePointer.current === 0) return;
+
+    queuePointer.current--;
+    await processQueue();
+  }, [processQueue]);
+
+  const nextTrack = useCallback(async () => {
+    if (queuePointer.current === queue.current.length - 1) return;
+
+    queuePointer.current++;
+    await processQueue();
+  }, [processQueue]);
+
+  const toggleRepeat = useCallback(
+    () => setIsRepeatEnabled(!isRepeatEnabled),
+    [isRepeatEnabled]
   );
 
   return (
@@ -160,11 +234,17 @@ export const SoundPlayerProvider = ({ children }: SoundPlayerProviderProps) => {
       value={{
         isPlaying,
         isAudioLoaded,
+        isRepeatEnabled,
         getSoundPlayerStatus,
-        preparePlayback,
-        togglePlayback,
         getPlaybackPosition,
-        setPlaybackPosition
+        setPlaybackPosition,
+        togglePlayback,
+        onPlaybackFinish,
+        enqueue,
+        shuffleQueue,
+        previousTrack,
+        nextTrack,
+        toggleRepeat
       }}
     >
       {children}

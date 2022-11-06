@@ -18,12 +18,30 @@ const PlayerComponent = () => {
 
   const { error } = useApp();
   const { track } = useTrack();
-  const { preparePlayback, togglePlayback, isAudioLoaded, isPlaying } =
-    useSoundPlayer();
+  const {
+    enqueue,
+    shuffleQueue,
+    previousTrack,
+    togglePlayback,
+    nextTrack,
+    toggleRepeat,
+    isAudioLoaded,
+    isPlaying
+  } = useSoundPlayer();
 
   const { colors } = useTheme();
 
-  const handlePreparePlayback = async () => await preparePlayback(enteredTrack);
+  const handleEnqueueTrack = async () => await enqueue(enteredTrack);
+
+  const handleShuffleQueue = () => shuffleQueue();
+
+  const handleChangeToPreviousTrack = async () => await previousTrack();
+
+  const handleTogglePlayback = async () => await togglePlayback();
+
+  const handleChangeToNextTrack = async () => await nextTrack();
+
+  const handleToggleRepeat = () => toggleRepeat();
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -32,8 +50,8 @@ const PlayerComponent = () => {
           <Input
             placeholder="Search track"
             onChangeText={setEnteredTrack}
-            onSubmitEditing={handlePreparePlayback}
-            rightContent={<InputBtn onPress={handlePreparePlayback} />}
+            onSubmitEditing={handleEnqueueTrack}
+            rightContent={<InputBtn onPress={handleEnqueueTrack} />}
           />
 
           {!!error && <S.ErrorMessage>{error}</S.ErrorMessage>}
@@ -58,14 +76,26 @@ const PlayerComponent = () => {
                 <ProgressSlider />
 
                 <S.PlayerControlsWrapper>
-                  <ControlBtn icon={ICONS.SHUFFLE} onPress={() => null} />
-                  <ControlBtn icon={ICONS.PREVIOUS} onPress={() => null} />
+                  <ControlBtn
+                    icon={ICONS.SHUFFLE}
+                    onPress={handleShuffleQueue}
+                  />
+                  <ControlBtn
+                    icon={ICONS.PREVIOUS}
+                    onPress={handleChangeToPreviousTrack}
+                  />
                   <ControlBtn
                     icon={isPlaying ? ICONS.PAUSE : ICONS.PLAY}
-                    onPress={togglePlayback}
+                    onPress={handleTogglePlayback}
                   />
-                  <ControlBtn icon={ICONS.NEXT} onPress={() => null} />
-                  <ControlBtn icon={ICONS.REPEAT} onPress={() => null} />
+                  <ControlBtn
+                    icon={ICONS.NEXT}
+                    onPress={handleChangeToNextTrack}
+                  />
+                  <ControlBtn
+                    icon={ICONS.REPEAT}
+                    onPress={handleToggleRepeat}
+                  />
                 </S.PlayerControlsWrapper>
               </>
             )}

@@ -20,7 +20,7 @@ export const TrackCover = styled.Image`
 export const TrackTitle = styled.Text`
   margin-top: ${RFValue(20)}px;
 
-  font-size: ${RFValue(20)}px;
+  font-size: ${RFValue(18)}px;
   font-family: ${({ theme }) => theme.fonts.medium};
 
   color: ${({ theme }) => theme.colors.title};
@@ -29,7 +29,7 @@ export const TrackTitle = styled.Text`
 export const ArtistName = styled.Text`
   margin-top: ${RFValue(7)}px;
 
-  font-size: ${RFValue(18)}px;
+  font-size: ${RFValue(16)}px;
   font-family: ${({ theme }) => theme.fonts.regular};
 
   color: ${({ theme }) => theme.colors.titleDark};

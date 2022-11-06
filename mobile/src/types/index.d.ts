@@ -43,11 +43,17 @@ export type PlaybackPosition = {
 export type SoundPlayerContextProps = {
   isPlaying: boolean;
   isAudioLoaded: boolean;
+  isRepeatEnabled: boolean;
   getSoundPlayerStatus: () => Promise<PlaybackStatus>;
-  preparePlayback: (enteredTrack: string) => Promise<void>;
-  togglePlayback: () => Promise<void>;
   getPlaybackPosition: () => Promise<PlaybackPosition>;
   setPlaybackPosition: (positionMillis: number) => Promise<void>;
+  togglePlayback: () => Promise<void>;
+  onPlaybackFinish: () => Promise<void>;
+  enqueue: (enteredValue: string) => Promise<void>;
+  shuffleQueue: () => void;
+  previousTrack: () => Promise<void>;
+  nextTrack: () => Promise<void>;
+  toggleRepeat: () => void;
 };
 
 export type SoundPlayerProviderProps = ComponentProps;
@@ -81,8 +87,6 @@ export type TrackFormats = Record<
   'bestQuality' | 'worstQuality',
   YtdlTrackFormatsData[]
 >;
-
-// -----
 
 export type PlaybackStatus = {
   isLoaded: true;
