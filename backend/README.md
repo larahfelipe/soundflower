@@ -4,7 +4,8 @@ soundflower-api
 - Installation and setup:
 yarn && yarn dev
 
-* Note: If you want to use Redis, you'll also need to install and run it locally. Make sure to set the REDIS_ENABLED environment variable to true though.
+* Note: If you want to use Redis, you'll also need to install and run it locally.
+  Make sure to set the REDIS_ENABLED environment variable to true.
 
 ================
 

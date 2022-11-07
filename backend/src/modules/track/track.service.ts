@@ -47,7 +47,7 @@ export class TrackService {
 
     const maybeResponse = await redis.getData(`${envs.redisTrackKey}:${q}`);
     if (maybeResponse) {
-      response = JSON.parse(maybeResponse);
+      response = await JSON.parse(maybeResponse);
 
       return response;
     }
