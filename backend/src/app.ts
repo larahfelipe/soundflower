@@ -9,7 +9,7 @@ const bootstrap = async () => {
     app.listen({ port: +envs.port, host: envs.host }, (error, address) => {
       if (error) throw error;
 
-      console.log(`\n> Server listening on ${address}`);
+      console.log(`\n> Server listening at ${address}\n`);
     });
   } catch (e) {
     console.error(e);

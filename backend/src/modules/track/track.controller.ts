@@ -13,9 +13,13 @@ export class TrackController {
   async handle(req: TrackController.Request) {
     const { q } = req.query;
 
-    const result = await this.trackService.execute({ q });
+    try {
+      const result = await this.trackService.execute({ q });
 
-    return result;
+      return result;
+    } catch (e) {
+      console.error(e);
+    }
   }
 }
 

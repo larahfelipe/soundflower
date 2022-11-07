@@ -15,7 +15,7 @@ export const SoundPlayerContext = createContext({} as SoundPlayerContextProps);
 export const SoundPlayerProvider = ({ children }: SoundPlayerProviderProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isAudioLoaded, setIsAudioLoaded] = useState(false);
-  const [isRepeatEnabled, setIsRepeatEnabled] = useState(false);
+  const [isRepeating, setIsRepeating] = useState(false);
   const [audioPlayer, setAudioPlayer] = useState({} as Audio.Sound);
   const queue = useRef([] as string[]);
   const queuePointer = useRef(0);
@@ -143,7 +143,7 @@ export const SoundPlayerProvider = ({ children }: SoundPlayerProviderProps) => {
 
         const track = await getTrack(trackQueued);
 
-        const trackFormats = await getTrackFormats(track.ytVideoId);
+        const trackFormats = await getTrackFormats(track.id);
         const trackStreamUrls = [
           ...trackFormats.bestQuality.map((f) => f.url),
           ...trackFormats.worstQuality.map((f) => f.url)
@@ -181,15 +181,15 @@ export const SoundPlayerProvider = ({ children }: SoundPlayerProviderProps) => {
   );
 
   const onPlaybackFinish = useCallback(async () => {
-    if (isRepeatEnabled) {
+    if (isRepeating) {
       await setPlaybackPosition(0);
-      setIsRepeatEnabled(false);
+      setIsRepeating(false);
       return;
     }
 
     queuePointer.current++;
     await processQueue();
-  }, [isRepeatEnabled, processQueue, setPlaybackPosition]);
+  }, [isRepeating, processQueue, setPlaybackPosition]);
 
   const enqueue = useCallback(
     async (enteredValue: string) => {
@@ -205,9 +205,12 @@ export const SoundPlayerProvider = ({ children }: SoundPlayerProviderProps) => {
   );
 
   const shuffleQueue = useCallback(() => {
-    if (!queue.current.length || queue.current.length === 1) return;
+    if (queue.current.length < 2) return;
 
-    queue.current.sort(() => Math.random() - 0.5);
+    queue.current
+      .map((track) => ({ track, sort: Math.random() }))
+      .sort((x, y) => x.sort - y.sort)
+      .map(({ track }) => track);
   }, []);
 
   const previousTrack = useCallback(async () => {
@@ -225,8 +228,8 @@ export const SoundPlayerProvider = ({ children }: SoundPlayerProviderProps) => {
   }, [processQueue]);
 
   const toggleRepeat = useCallback(
-    () => setIsRepeatEnabled(!isRepeatEnabled),
-    [isRepeatEnabled]
+    () => setIsRepeating(!isRepeating),
+    [isRepeating]
   );
 
   return (
@@ -234,7 +237,7 @@ export const SoundPlayerProvider = ({ children }: SoundPlayerProviderProps) => {
       value={{
         isPlaying,
         isAudioLoaded,
-        isRepeatEnabled,
+        isRepeating,
         getSoundPlayerStatus,
         getPlaybackPosition,
         setPlaybackPosition,

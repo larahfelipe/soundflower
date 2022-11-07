@@ -17,14 +17,16 @@ export const ICONS = {
 };
 
 export const DEFAULT_TRACK_DATA: Track = {
+  id: '',
   title: '',
   artist: '',
-  albumTitle: '',
-  albumUrl: '',
-  artworkColors: {
-    Fallback: '#000'
+  album: {
+    title: ''
   },
-  artworkUrl:
-    'https://github.com/larafe1/soundflower/blob/master/mobile/src/assets/placeholder.png?raw=true',
-  ytVideoId: ''
+  artwork: {
+    url: 'https://github.com/larafe1/soundflower/blob/master/mobile/src/assets/placeholder.png?raw=true',
+    colors: {
+      Fallback: '#000'
+    }
+  }
 };

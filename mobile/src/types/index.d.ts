@@ -43,7 +43,7 @@ export type PlaybackPosition = {
 export type SoundPlayerContextProps = {
   isPlaying: boolean;
   isAudioLoaded: boolean;
-  isRepeatEnabled: boolean;
+  isRepeating: boolean;
   getSoundPlayerStatus: () => Promise<PlaybackStatus>;
   getPlaybackPosition: () => Promise<PlaybackPosition>;
   setPlaybackPosition: (positionMillis: number) => Promise<void>;
@@ -58,14 +58,21 @@ export type SoundPlayerContextProps = {
 
 export type SoundPlayerProviderProps = ComponentProps;
 
+type Album = {
+  title: string;
+};
+
+type Artwork = {
+  url: string;
+  colors: Palette;
+};
+
 export type Track = {
+  id: string;
   title: string;
   artist: string;
-  albumTitle: string;
-  albumUrl: string;
-  artworkUrl: string;
-  artworkColors: Palette;
-  ytVideoId: string;
+  album: Album;
+  artwork: Artwork;
 };
 
 type YtdlTrackFormatsData = {
@@ -114,7 +121,5 @@ type Palette = {
   Muted?: string;
   DarkVibrant?: string;
   DarkMuted?: string;
-  LightVibrant?: string;
-  LightMuted?: string;
   Fallback: string;
 };

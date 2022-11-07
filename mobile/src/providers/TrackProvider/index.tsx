@@ -56,7 +56,7 @@ export const TrackProvider = ({ children }: TrackProviderProps) => {
       if (!Object.keys(data).length)
         setError('Could not find any track for the given search');
 
-      const trackData = data.albumTitle
+      const trackData = data.album.title
         ? data
         : { ...DEFAULT_TRACK_DATA, ...data };
 
