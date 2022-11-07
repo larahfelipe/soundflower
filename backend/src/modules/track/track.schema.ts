@@ -6,20 +6,21 @@ const trackRequestSchema = z.object({
 });
 
 const trackResponseSchema = z.object({
+  id: z.string(),
   title: z.string(),
   artist: z.string(),
-  albumTitle: z.string(),
-  albumUrl: z.string(),
-  artworkUrl: z.string(),
-  artworkColors: z.object({
-    Vibrant: z.string(),
-    Muted: z.string(),
-    DarkVibrant: z.string(),
-    DarkMuted: z.string(),
-    LightVibrant: z.string(),
-    LightMuted: z.string()
+  album: z.object({
+    title: z.string()
   }),
-  ytVideoId: z.string()
+  artwork: z.object({
+    url: z.string(),
+    colors: z.object({
+      Vibrant: z.union([z.string(), z.array(z.number())]),
+      Muted: z.union([z.string(), z.array(z.number())]),
+      DarkVibrant: z.union([z.string(), z.array(z.number())]),
+      DarkMuted: z.union([z.string(), z.array(z.number())])
+    })
+  })
 });
 
 export const { schemas: trackSchemas, $ref } = buildJsonSchemas({

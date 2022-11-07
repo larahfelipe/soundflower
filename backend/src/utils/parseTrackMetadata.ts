@@ -4,12 +4,13 @@ type TrackMetadata = {
 };
 
 export const parseTrackMetadata = (query: string) => {
-  if (!query.includes('artist') && !query.includes('title')) return null;
-
   let trackMetadata: TrackMetadata = {
     artist: '',
     title: ''
   };
+
+  if (!query.includes('artist') && !query.includes('title'))
+    return trackMetadata;
 
   if (!query.includes('artist') && query.includes('title')) {
     const title = query.split('title=')[1];

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 import { Keyboard, TouchableWithoutFeedback } from 'react-native';
 
@@ -9,39 +9,26 @@ import { ICONS } from '@/constants';
 import { useApp, useTrack } from '@/hooks';
 
 import { ControlBtn, InputBtn, ProgressSlider, TrackInfo } from './components';
-import { useSoundPlayer } from './hooks';
+import { usePlayer } from './hooks';
 import { SoundPlayerProvider } from './providers';
 import * as S from './styles';
 
 const PlayerComponent = () => {
-  const [enteredTrack, setEnteredTrack] = useState('');
-
   const { error } = useApp();
   const { track } = useTrack();
   const {
-    enqueue,
-    shuffleQueue,
-    previousTrack,
-    togglePlayback,
-    nextTrack,
-    toggleRepeat,
+    handleShuffleQueue,
+    handleChangeToPreviousTrack,
+    handleTogglePlayback,
+    handleChangeToNextTrack,
+    handleToggleRepeat,
+    handleEnqueueTrack,
+    setEnteredTrack,
     isAudioLoaded,
     isPlaying
-  } = useSoundPlayer();
+  } = usePlayer();
 
   const { colors } = useTheme();
-
-  const handleEnqueueTrack = async () => await enqueue(enteredTrack);
-
-  const handleShuffleQueue = () => shuffleQueue();
-
-  const handleChangeToPreviousTrack = async () => await previousTrack();
-
-  const handleTogglePlayback = async () => await togglePlayback();
-
-  const handleChangeToNextTrack = async () => await nextTrack();
-
-  const handleToggleRepeat = () => toggleRepeat();
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -62,7 +49,7 @@ const PlayerComponent = () => {
           h="95%"
           colors={[
             colors.background,
-            track.artworkColors.DarkVibrant ?? colors.background,
+            track.artwork.colors.DarkVibrant ?? colors.background,
             'transparent'
           ]}
         >

@@ -1,15 +1,15 @@
 import type { AxiosResponse } from 'axios';
 import yts from 'yt-search';
 
-import { api } from '@/config';
+import { api, envs, redis } from '@/config';
 import { DEFAULT_TRACK_RESPONSE } from '@/constants';
 import {
-  getArtworkPaletteColors,
+  getArtworkColorsPalette,
   getHQArtworkUrl,
+  getQueryPayloadPossibilities,
   getYouTubeVideoId,
-  parseQueryPayload,
-  parseTrackMetadata,
-  validateYouTubeUrl
+  isValidYouTubeURL,
+  parseTrackMetadata
 } from '@/utils';
 
 import type { TrackRequest, TrackResponse } from './track.schema';
@@ -29,6 +29,7 @@ export class TrackService {
     const { data }: AxiosResponse<TrackData> = await api.get(
       `/?method=track.getinfo&track=${title}&artist=${artist}`
     );
+
     return data;
   }
 
@@ -36,105 +37,122 @@ export class TrackService {
     const { data }: AxiosResponse<SearchTrack> = await api.get(
       `/?method=track.search&track=${title}`
     );
+
     return data;
   }
 
   async execute({ q }: TrackService.Params) {
-    let trackResponse: TrackService.Result = DEFAULT_TRACK_RESPONSE;
+    let response: TrackService.Result = DEFAULT_TRACK_RESPONSE;
     let videoMetadata = {} as VideoMetadata;
-    const isValidYouTubeUrl = validateYouTubeUrl(q);
 
-    try {
-      if (isValidYouTubeUrl) {
-        const videoId = getYouTubeVideoId(q);
-        if (!videoId) throw new Error('Invalid YouTube Video ID');
+    const maybeResponse = await redis.getData(`${envs.redisTrackKey}:${q}`);
+    if (maybeResponse) {
+      response = await JSON.parse(maybeResponse);
 
-        videoMetadata = await yts({ videoId });
-      } else {
-        const { videos } = await yts(q);
-        if (!videos.length)
-          throw new Error('No videos found with the given query');
+      return response;
+    }
 
-        videoMetadata = videos[0];
+    if (isValidYouTubeURL(q)) {
+      const videoId = getYouTubeVideoId(q);
+      if (!videoId) throw new Error('Invalid YouTube Video ID');
+
+      videoMetadata = await yts({ videoId });
+    } else {
+      const { videos } = await yts(q);
+      if (!videos.length)
+        throw new Error('No videos found with the given query');
+
+      videoMetadata = videos[0];
+    }
+
+    response = {
+      ...response,
+      id: videoMetadata.videoId,
+      artwork: {
+        ...response.artwork,
+        url: videoMetadata.thumbnail
+      },
+      title: videoMetadata.title
+    };
+
+    for (const v of getQueryPayloadPossibilities(q)) {
+      const { artist, title } = parseTrackMetadata(v);
+      if (!artist.length) break;
+
+      const { track: trackData_1 } = await this.getTrackByMetadata({
+        artist,
+        title
+      });
+
+      if (!trackData_1) continue;
+
+      if (trackData_1?.album) {
+        response = {
+          ...response,
+          artwork: {
+            ...response.artwork,
+            url: getHQArtworkUrl(
+              trackData_1.album.image,
+              videoMetadata.thumbnail
+            )
+          },
+          album: {
+            title: trackData_1.album.title
+          },
+          title: trackData_1.name,
+          artist: trackData_1.album.artist
+        };
+
+        break;
       }
 
-      trackResponse = {
-        ...trackResponse,
-        title: videoMetadata.title,
-        artworkUrl: videoMetadata.thumbnail,
-        ytVideoId: videoMetadata.videoId
-      };
+      const { results: trackResults } = await this.getTrackByTitle({ title });
 
-      const parsedQueryPayloadPossibilities = parseQueryPayload(q);
-      for (const v of parsedQueryPayloadPossibilities) {
-        const trackMetadata = parseTrackMetadata(v);
-        if (!trackMetadata?.artist) break;
+      const maybeDesiredTrack = trackResults.trackmatches.track.find(
+        (t) => t.artist.toUpperCase() === artist.toUpperCase()
+      );
 
-        const { artist, title } = trackMetadata;
+      if (maybeDesiredTrack) {
+        const { name: title, artist, image } = maybeDesiredTrack;
 
-        const trackByMetadata_1 = await this.getTrackByMetadata({
+        const { track: trackData_2 } = await this.getTrackByMetadata({
           artist,
           title
         });
 
-        if (trackByMetadata_1?.track?.album) {
-          trackResponse = {
-            ...trackResponse,
-            albumTitle: trackByMetadata_1.track.album.title,
-            albumUrl: trackByMetadata_1.track.album.url,
-            title: trackByMetadata_1.track.name,
-            artist: trackByMetadata_1.track.album.artist,
-            artworkUrl: getHQArtworkUrl(trackByMetadata_1.track.album.image)
-          };
+        const artworkUrl =
+          !image.length && trackData_2.album.image.length
+            ? getHQArtworkUrl(trackData_2.album.image, videoMetadata.thumbnail)
+            : getHQArtworkUrl(image, videoMetadata.thumbnail);
 
-          break;
-        } else {
-          const trackByTitle = await this.getTrackByTitle({ title });
+        response = {
+          ...response,
+          artwork: {
+            ...response.artwork,
+            url: artworkUrl
+          },
+          album: {
+            title: trackData_2.album.title
+          },
+          title,
+          artist
+        };
 
-          const targetTrack = trackByTitle.results.trackmatches.track.find(
-            (track) => track.artist.toUpperCase() === artist.toUpperCase()
-          );
-
-          if (targetTrack) {
-            let artworkUrl = '';
-            const { name, artist } = targetTrack;
-
-            const trackByMetadata_2 = await this.getTrackByMetadata({
-              artist,
-              title: name
-            });
-
-            artworkUrl =
-              !targetTrack.image.length &&
-              trackByMetadata_2.track.album.image.length
-                ? getHQArtworkUrl(trackByMetadata_2.track.album.image)
-                : getHQArtworkUrl(targetTrack.image);
-
-            trackResponse = {
-              ...trackResponse,
-              albumTitle: trackByMetadata_2.track.album.title,
-              albumUrl: trackByMetadata_2.track.album.url,
-              title: name,
-              artist,
-              artworkUrl
-            };
-
-            break;
-          }
-        }
+        break;
       }
-
-      trackResponse = {
-        ...trackResponse,
-        artworkColors:
-          (await getArtworkPaletteColors(trackResponse.artworkUrl)) ??
-          trackResponse.artworkColors
-      };
-
-      return trackResponse;
-    } catch (e) {
-      console.error(e);
     }
+
+    response = {
+      ...response,
+      artwork: {
+        ...response.artwork,
+        colors: await getArtworkColorsPalette(response.artwork.url)
+      }
+    };
+
+    await redis.setData(`${envs.redisTrackKey}:${q}`, response);
+
+    return response;
   }
 }
 
