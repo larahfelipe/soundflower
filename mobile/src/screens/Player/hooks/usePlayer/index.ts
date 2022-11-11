@@ -7,18 +7,20 @@ export const usePlayer = () => {
 
   const {
     enqueue,
-    shuffleQueue,
+    toggleShuffle,
     previousTrack,
     togglePlayback,
     nextTrack,
     toggleRepeat,
     isAudioLoaded,
+    isLooping,
+    isShuffled,
     isPlaying
   } = useSoundPlayer();
 
   const handleEnqueueTrack = async () => await enqueue(enteredTrack);
 
-  const handleShuffleQueue = () => shuffleQueue();
+  const handleToggleShuffleQueue = () => toggleShuffle();
 
   const handleChangeToPreviousTrack = async () => await previousTrack();
 
@@ -31,12 +33,14 @@ export const usePlayer = () => {
   return {
     setEnteredTrack,
     handleEnqueueTrack,
-    handleShuffleQueue,
+    handleToggleShuffleQueue,
     handleChangeToPreviousTrack,
     handleTogglePlayback,
     handleChangeToNextTrack,
     handleToggleRepeat,
     isAudioLoaded,
+    isLooping,
+    isShuffled,
     isPlaying
   };
 };

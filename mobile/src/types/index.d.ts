@@ -40,17 +40,24 @@ export type PlaybackPosition = {
   durationMillis: number;
 };
 
+export type Queue = {
+  index: number;
+  default: string[];
+  shuffled: string[];
+};
+
 export type SoundPlayerContextProps = {
   isPlaying: boolean;
   isAudioLoaded: boolean;
-  isRepeating: boolean;
+  isLooping: boolean;
+  isShuffled: boolean;
   getSoundPlayerStatus: () => Promise<PlaybackStatus>;
   getPlaybackPosition: () => Promise<PlaybackPosition>;
   setPlaybackPosition: (positionMillis: number) => Promise<void>;
   togglePlayback: () => Promise<void>;
   onPlaybackFinish: () => Promise<void>;
   enqueue: (enteredValue: string) => Promise<void>;
-  shuffleQueue: () => void;
+  toggleShuffle: () => void;
   previousTrack: () => Promise<void>;
   nextTrack: () => Promise<void>;
   toggleRepeat: () => void;

@@ -4,7 +4,7 @@ import { Keyboard, TouchableWithoutFeedback } from 'react-native';
 
 import { useTheme } from 'styled-components';
 
-import { Gradient, Input, Loading } from '@/components';
+import { Gradient, Input, Loading, TranslatedEntry } from '@/components';
 import { ICONS } from '@/constants';
 import { useApp, useTrack } from '@/hooks';
 
@@ -17,7 +17,7 @@ const PlayerComponent = () => {
   const { error } = useApp();
   const { track } = useTrack();
   const {
-    handleShuffleQueue,
+    handleToggleShuffleQueue,
     handleChangeToPreviousTrack,
     handleTogglePlayback,
     handleChangeToNextTrack,
@@ -25,6 +25,8 @@ const PlayerComponent = () => {
     handleEnqueueTrack,
     setEnteredTrack,
     isAudioLoaded,
+    isLooping,
+    isShuffled,
     isPlaying
   } = usePlayer();
 
@@ -34,12 +36,14 @@ const PlayerComponent = () => {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <S.Wrapper>
         <S.Header>
-          <Input
-            placeholder="Search track"
-            onChangeText={setEnteredTrack}
-            onSubmitEditing={handleEnqueueTrack}
-            rightContent={<InputBtn onPress={handleEnqueueTrack} />}
-          />
+          <TranslatedEntry on="YAxis" duration={700}>
+            <Input
+              placeholder="Search track"
+              onChangeText={setEnteredTrack}
+              onSubmitEditing={handleEnqueueTrack}
+              rightContent={<InputBtn onPress={handleEnqueueTrack} />}
+            />
+          </TranslatedEntry>
 
           {!!error && <S.ErrorMessage>{error}</S.ErrorMessage>}
         </S.Header>
@@ -47,6 +51,7 @@ const PlayerComponent = () => {
         <Gradient
           w="100%"
           h="95%"
+          key={track?.id}
           colors={[
             colors.background,
             track.artwork.colors.DarkVibrant ?? colors.background,
@@ -54,7 +59,10 @@ const PlayerComponent = () => {
           ]}
         >
           <S.Body>
-            <TrackInfo track={track} />
+            <TrackInfo
+              track={track}
+              loading={!!track.title && !isAudioLoaded}
+            />
 
             {!!track.title && !isAudioLoaded ? (
               <Loading text="Preparing track. Please wait" />
@@ -65,7 +73,8 @@ const PlayerComponent = () => {
                 <S.PlayerControlsWrapper>
                   <ControlBtn
                     icon={ICONS.SHUFFLE}
-                    onPress={handleShuffleQueue}
+                    active={isShuffled}
+                    onPress={handleToggleShuffleQueue}
                   />
                   <ControlBtn
                     icon={ICONS.PREVIOUS}
@@ -81,6 +90,7 @@ const PlayerComponent = () => {
                   />
                   <ControlBtn
                     icon={ICONS.REPEAT}
+                    active={isLooping}
                     onPress={handleToggleRepeat}
                   />
                 </S.PlayerControlsWrapper>

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { useApp } from '@/hooks';
+import { useApp, useTrack } from '@/hooks';
 
 import { useSoundPlayer } from '../../../hooks';
 
@@ -10,6 +10,7 @@ export const useProgress = () => {
   const [stepValue, setStepValue] = useState(0);
 
   const { platform } = useApp();
+  const { track } = useTrack();
   const {
     getSoundPlayerStatus,
     getPlaybackPosition,
@@ -58,6 +59,7 @@ export const useProgress = () => {
   return {
     currentValue,
     totalValue,
-    onValueChange
+    onValueChange,
+    artworkColors: track?.artwork.colors
   };
 };
