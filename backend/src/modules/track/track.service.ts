@@ -45,9 +45,9 @@ export class TrackService {
     let response: TrackService.Result = DEFAULT_TRACK_RESPONSE;
     let videoMetadata = {} as VideoMetadata;
 
-    const maybeResponse = await redis.getData(`${envs.redisTrackKey}:${q}`);
-    if (maybeResponse) {
-      response = await JSON.parse(maybeResponse);
+    const maybeResult = await redis.getData(`${envs.redisTrackKey}:${q}`);
+    if (maybeResult) {
+      response = await JSON.parse(maybeResult);
 
       return response;
     }

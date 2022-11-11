@@ -1,4 +1,4 @@
-import type { Track } from '@/types';
+import type { Queue, Track } from '@/types';
 
 export const AUDIO_QUALITY = {
   HIGH: 'AUDIO_QUALITY_HIGH',
@@ -29,4 +29,10 @@ export const DEFAULT_TRACK_DATA: Track = {
       Fallback: '#000'
     }
   }
+};
+
+export const DEFAULT_QUEUE: Queue = {
+  index: 0,
+  default: [],
+  shuffled: []
 };

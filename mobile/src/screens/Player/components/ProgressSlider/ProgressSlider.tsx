@@ -9,7 +9,8 @@ import { useProgress } from './hooks';
 import * as S from './styles';
 
 export const ProgressSlider = () => {
-  const { currentValue, totalValue, onValueChange } = useProgress();
+  const { onValueChange, currentValue, totalValue, artworkColors } =
+    useProgress();
 
   const { colors } = useTheme();
 
@@ -20,7 +21,7 @@ export const ProgressSlider = () => {
         onSlidingComplete={onValueChange}
         maximumValue={totalValue}
         minimumTrackTintColor={colors.titleDark}
-        maximumTrackTintColor={colors.shapeDark}
+        maximumTrackTintColor={artworkColors.Muted ?? colors.shapeDark}
         thumbTintColor={colors.shape}
         style={{ width: '95%' }}
       />

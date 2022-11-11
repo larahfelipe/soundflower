@@ -1,6 +1,4 @@
-import { envs } from '@/config';
-
-import { makeServer } from './server';
+import { envs, makeServer } from '@/config';
 
 const bootstrap = async () => {
   try {
