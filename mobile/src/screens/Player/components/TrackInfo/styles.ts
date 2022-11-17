@@ -17,13 +17,12 @@ export const TrackCover = styled.Image`
   border-radius: ${RFValue(5)}px;
 `;
 
-export const TrackTitle = styled.Text`
+export const TrackMetadataWrapper = styled.View`
+  width: ${RFValue(85)}%;
+
+  align-items: center;
+
   margin-top: ${RFValue(20)}px;
-
-  font-size: ${RFValue(18)}px;
-  font-family: ${({ theme }) => theme.fonts.medium};
-
-  color: ${({ theme }) => theme.colors.title};
 `;
 
 export const ArtistName = styled.Text`

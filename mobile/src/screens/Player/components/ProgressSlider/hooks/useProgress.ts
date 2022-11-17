@@ -36,9 +36,6 @@ export const useProgress = () => {
   const updateCurrentPosition = useCallback(async () => {
     const { positionMillis } = await getPlaybackPosition();
     if (positionMillis >= totalValue) {
-      console.log(
-        'bug here, this scope is being entered only when the track is entire played and not when the user drags the slider'
-      );
       await onPlaybackFinish();
       return;
     }

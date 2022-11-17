@@ -57,10 +57,7 @@ export const SoundPlayerProvider = ({ children }: SoundPlayerProviderProps) => {
     async (positionMillis: number) => {
       if (audioPlayer instanceof Audio.Sound) {
         try {
-          await audioPlayer.setPositionAsync(positionMillis, {
-            toleranceMillisBefore: 0,
-            toleranceMillisAfter: 0
-          });
+          await audioPlayer.setPositionAsync(positionMillis);
         } catch (_) {
           // ignore
         }
