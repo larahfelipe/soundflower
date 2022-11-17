@@ -6384,6 +6384,11 @@ react-native-iphone-x-helper@^1.3.1:
   resolved "https://registry.yarnpkg.com/react-native-iphone-x-helper/-/react-native-iphone-x-helper-1.3.1.tgz#20c603e9a0e765fd6f97396638bdeb0e5a60b010"
   integrity sha512-HOf0jzRnq2/aFUcdCJ9w9JGzN3gdEg0zFE4FyYlp4jtidqU03D5X7ZegGKfT1EWteR0gPBGp9ye5T5FvSWi9Yg==
 
+react-native-marquee@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/react-native-marquee/-/react-native-marquee-0.4.0.tgz#6b1ccc8c0b6160830453139b8bedf753388112e3"
+  integrity sha512-YLVqHGNllE6t6qDqMgPhJ5Qj5s6YMHx4MDR8l+FTDSyDsiM5FHV/aR7bx+yiMbU+3cHSGtm8W/7J1SwS/A/RKA==
+
 react-native-reanimated@~2.9.1:
   version "2.9.1"
   resolved "https://registry.yarnpkg.com/react-native-reanimated/-/react-native-reanimated-2.9.1.tgz#d9a932e312c13c05b4f919e43ebbf76d996e0bc1"

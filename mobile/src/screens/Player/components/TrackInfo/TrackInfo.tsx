@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { ScaleEntry } from '@/components';
+import { MarqueeTxt, ScaleEntry } from '@/components';
 import { DEFAULT_TRACK_DATA } from '@/constants';
 
 import * as S from './styles';
@@ -13,8 +13,11 @@ export const TrackInfo = ({ track, loading }: TrackInfoProps) => {
         <S.TrackCover
           source={{ uri: track.artwork.url ?? DEFAULT_TRACK_DATA.artwork.url }}
         />
-        <S.TrackTitle>{track.title}</S.TrackTitle>
-        <S.ArtistName>{track.artist}</S.ArtistName>
+
+        <S.TrackMetadataWrapper>
+          <MarqueeTxt size={18}>{track.title}</MarqueeTxt>
+          <S.ArtistName>{track.artist}</S.ArtistName>
+        </S.TrackMetadataWrapper>
       </S.Wrapper>
     </ScaleEntry>
   );
