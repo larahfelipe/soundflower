@@ -197,13 +197,10 @@ export const SoundPlayerProvider = ({ children }: SoundPlayerProviderProps) => {
         return;
       }
 
-      const lastAddedIndex = getQueue().default.length - 1;
-      if (enteredValue === getTrackQueued(lastAddedIndex)) return;
-
       manageQueue('add', enteredValue);
       await processPlayback(false);
     },
-    [getQueue, getTrackQueued, manageQueue, processPlayback, setError]
+    [manageQueue, processPlayback, setError]
   );
 
   const toggleRepeat = useCallback(() => {

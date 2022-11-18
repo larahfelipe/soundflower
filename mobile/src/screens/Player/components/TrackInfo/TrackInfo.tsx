@@ -15,7 +15,9 @@ export const TrackInfo = ({ track, loading }: TrackInfoProps) => {
         />
 
         <S.TrackMetadataWrapper>
-          <MarqueeTxt size={18}>{track.title}</MarqueeTxt>
+          <MarqueeTxt size={18} weight="bold">
+            {track.title}
+          </MarqueeTxt>
           <S.ArtistName>{track.artist}</S.ArtistName>
         </S.TrackMetadataWrapper>
       </S.Wrapper>
