@@ -7,18 +7,22 @@ import type { MarqueeTxtProps } from './types';
 
 export const MarqueeTxt = ({
   size = 16,
+  weight = 'normal',
+  color: colorProp,
   children,
   ...props
 }: MarqueeTxtProps) => {
   const { colors, fonts } = useTheme();
 
+  const fontFamily = weight === 'bold' ? fonts.bold : fonts.regular;
+  const color = colorProp ?? colors.title;
+
   return (
     <MarqueeText
       style={{
-        width: '100%',
         fontSize: size,
-        fontFamily: fonts.medium,
-        color: colors.title
+        fontFamily,
+        color
       }}
       {...props}
     >
