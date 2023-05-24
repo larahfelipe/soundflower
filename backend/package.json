@@ -2,8 +2,8 @@
   "name": "soundflower-api",
   "version": "0.0.0",
   "main": "index.js",
-  "repository": "https://github.com/larafe1/soundflower.git",
-  "author": "larafe1",
+  "repository": "https://github.com/larahfelipe/soundflower.git",
+  "author": "larahfelipe",
   "license": "MIT",
   "scripts": {
     "start": "node -r ts-node/register -r tsconfig-paths/register dist/app.js",

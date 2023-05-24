@@ -24,7 +24,7 @@ export const DEFAULT_TRACK_DATA: Track = {
     title: ''
   },
   artwork: {
-    url: 'https://github.com/larafe1/soundflower/blob/master/mobile/src/assets/placeholder.png?raw=true',
+    url: 'https://github.com/larahfelipe/soundflower/blob/master/mobile/src/assets/placeholder.png?raw=true',
     colors: {
       Fallback: '#000'
     }

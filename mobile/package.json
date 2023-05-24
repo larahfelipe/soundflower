@@ -2,7 +2,7 @@
   "name": "soundflower",
   "version": "0.0.0",
   "main": "index.js",
-  "author": "larafe1",
+  "author": "larahfelipe",
   "scripts": {
     "android": "expo run:android",
     "ios": "expo run:ios",
