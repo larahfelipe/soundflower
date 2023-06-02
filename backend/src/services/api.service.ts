@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import { envs } from './envs';
+import { envs } from '../config/envs';
 
 export const api = axios.create({
   baseURL: envs.lastfmApiUrl,

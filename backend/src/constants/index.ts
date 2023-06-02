@@ -1,8 +1,8 @@
-import type { TrackResponse } from '@/modules';
+import type { GetTrackResponse } from '@/modules';
 
 export const QUERY_SPLIT_IDENTIFIER = '-';
 
-export const DEFAULT_TRACK_RESPONSE: TrackResponse = {
+export const DEFAULT_TRACK_RESPONSE: GetTrackResponse = {
   id: '',
   title: '',
   artist: '',

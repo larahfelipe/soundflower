@@ -1,18 +1,18 @@
 import type { FastifyInstance } from 'fastify';
 
-import { $ref, trackControllerHandler } from './';
+import { $ref, getTrackControllerHandler } from './get-track';
 
 export const trackRoutes = async (server: FastifyInstance) => {
   server.get(
     '/',
     {
       schema: {
-        querystring: $ref('trackRequestSchema'),
+        querystring: $ref('getTrackRequestSchema'),
         response: {
-          200: $ref('trackResponseSchema')
+          200: $ref('getTrackResponseSchema')
         }
       }
     },
-    trackControllerHandler
+    getTrackControllerHandler
   );
 };
