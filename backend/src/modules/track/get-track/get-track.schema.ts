@@ -1,11 +1,11 @@
 import { buildJsonSchemas } from 'fastify-zod';
 import { z } from 'zod';
 
-const trackRequestSchema = z.object({
+const getTrackRequestSchema = z.object({
   q: z.string()
 });
 
-const trackResponseSchema = z.object({
+const getTrackResponseSchema = z.object({
   id: z.string(),
   title: z.string(),
   artist: z.string(),
@@ -23,11 +23,11 @@ const trackResponseSchema = z.object({
   })
 });
 
-export const { schemas: trackSchemas, $ref } = buildJsonSchemas({
-  trackRequestSchema,
-  trackResponseSchema
+export const { schemas: getTrackSchemas, $ref } = buildJsonSchemas({
+  getTrackRequestSchema,
+  getTrackResponseSchema
 });
 
-export type TrackRequest = z.infer<typeof trackRequestSchema>;
+export type GetTrackRequest = z.infer<typeof getTrackRequestSchema>;
 
-export type TrackResponse = z.infer<typeof trackResponseSchema>;
+export type GetTrackResponse = z.infer<typeof getTrackResponseSchema>;
